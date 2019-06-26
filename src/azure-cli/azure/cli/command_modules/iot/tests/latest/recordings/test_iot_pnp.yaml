@@ -13,23 +13,39 @@ interactions:
       Content-Type:
       - application/json-patch+json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     method: PUT
     uri: https://provider.azureiotrepository-test.com/repositories?api-version=2019-07-01-Preview
   response:
     body:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       string: '{"status":"Provisioned","provisioningState":"dc3127e18f0f4573a125114baeaad98a","id":"621158b3145e471b99b3f9f4379e5026","pollBackUri":null}'
+=======
+      string: '{"status":"Provisioned","provisioningState":"72da99435f724ff5bed613470f93472f","id":"c85b52edf8e1423cad7b644dd27f4f48","pollBackUri":null}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '138'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:29 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:27:59 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -55,23 +71,40 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/status/dc3127e18f0f4573a125114baeaad98a?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"status":"Provisioned","provisioningState":"dc3127e18f0f4573a125114baeaad98a","id":"621158b3145e471b99b3f9f4379e5026","pollBackUri":null}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/status/72da99435f724ff5bed613470f93472f?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"status":"Provisioned","provisioningState":"72da99435f724ff5bed613470f93472f","id":"c85b52edf8e1423cad7b644dd27f4f48","pollBackUri":null}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '138'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:30 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:27:59 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -86,7 +119,11 @@ interactions:
       code: 200
       message: OK
 - request:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
     body: '{"properties": {"id": "621158b3145e471b99b3f9f4379e5026", "name": "clitestrepo-updated"}}'
+=======
+    body: '{"properties": {"id": "c85b52edf8e1423cad7b644dd27f4f48", "name": "clitestrepo-updated"}}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       Accept:
       - application/json
@@ -99,23 +136,39 @@ interactions:
       Content-Type:
       - application/json-patch+json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     method: PUT
     uri: https://provider.azureiotrepository-test.com/repositories?api-version=2019-07-01-Preview
   response:
     body:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       string: '{"status":"Provisioned","provisioningState":"dc3127e18f0f4573a125114baeaad98a","id":"621158b3145e471b99b3f9f4379e5026","pollBackUri":null}'
+=======
+      string: '{"status":"Provisioned","provisioningState":"72da99435f724ff5bed613470f93472f","id":"c85b52edf8e1423cad7b644dd27f4f48","pollBackUri":null}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '138'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:34 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:00 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -141,11 +194,16 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories?api-version=2019-07-01-Preview
   response:
     body:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       string: '[{"id":"621158b3145e471b99b3f9f4379e5026","name":"clitestrepo-updated","type":"{resourceProviderNamespace}/repository","properties":{"id":"621158b3145e471b99b3f9f4379e5026","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","kind":"Repository","createdOn":"2019-07-23T17:03:29.605679Z","updatedOn":"2019-07-23T17:03:33.5354398Z"}}]'
     headers:
       content-length:
@@ -158,6 +216,20 @@ interactions:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      string: '[{"id":"dd650e3845ef4028816ba6e9121911de","name":"ADB - microsoft.com","type":"{resourceProviderNamespace}/repository","properties":{"id":"dd650e3845ef4028816ba6e9121911de","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","kind":"Repository","createdOn":"0001-01-01T00:00:00","lastUpdated":"0001-01-01T00:00:00"}},{"id":"413c5961e76d4f72a578bab8b8ecc3d7","name":"Repo13","type":"{resourceProviderNamespace}/repository","properties":{"id":"413c5961e76d4f72a578bab8b8ecc3d7","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","kind":"Repository","createdOn":"0001-01-01T00:00:00","lastUpdated":"0001-01-01T00:00:00"}},{"id":"b2ee85c678834654aeae16dc37ddd06b","name":"vsc-bugbash","type":"{resourceProviderNamespace}/repository","properties":{"id":"b2ee85c678834654aeae16dc37ddd06b","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","kind":"Repository","createdOn":"0001-01-01T00:00:00","lastUpdated":"0001-01-01T00:00:00"}},{"id":"c85b52edf8e1423cad7b644dd27f4f48","name":"clitestrepo-updated","type":"{resourceProviderNamespace}/repository","properties":{"id":"c85b52edf8e1423cad7b644dd27f4f48","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","kind":"Repository","createdOn":"0001-01-01T00:00:00","lastUpdated":"0001-01-01T00:00:00"}}]'
+    headers:
+      content-length:
+      - '1352'
+      content-type:
+      - application/json; charset=utf-8
+      date:
+      - Wed, 26 Jun 2019 17:28:00 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -183,23 +255,40 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"id":"621158b3145e471b99b3f9f4379e5026","name":"clitestrepo-updated","type":"{resourceProviderNamespace}/repository","properties":{"id":"621158b3145e471b99b3f9f4379e5026","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","kind":"Repository","createdOn":"2019-07-23T17:03:29.605679Z","updatedOn":"2019-07-23T17:03:33.5354398Z"}}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"id":"c85b52edf8e1423cad7b644dd27f4f48","name":"clitestrepo-updated","type":"{resourceProviderNamespace}/repository","properties":{"id":"c85b52edf8e1423cad7b644dd27f4f48","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","kind":"Repository","createdOn":"0001-01-01T00:00:00","lastUpdated":"0001-01-01T00:00:00"}}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '380'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:37 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:00 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -225,9 +314,15 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys?api-version=2019-07-01-Preview
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys?api-version=2019-07-01-Preview
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
   response:
     body:
       string: '[]'
@@ -237,11 +332,19 @@ interactions:
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:40 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:01 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -269,23 +372,40 @@ interactions:
       Content-Type:
       - application/json-patch+json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: PUT
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"id":"6b879e1052f64a689884abe3fb6c2428","repositoryId":"621158b3145e471b99b3f9f4379e5026","userRole":"Reader","secret":"IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","createdOn":"2019-07-23T17:03:42.0699322Z","updatedOn":"2019-07-23T17:03:42.0699322Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=621158b3145e471b99b3f9f4379e5026;SharedAccessKeyName=6b879e1052f64a689884abe3fb6c2428;SharedAccessKey=IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: PUT
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"id":"c80204aaa8a642da92caec3222b48ecd","repositoryId":"c85b52edf8e1423cad7b644dd27f4f48","userRole":"Reader","secret":"OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","createdOn":"2019-06-26T17:28:01.9341101Z","lastUpdated":"2019-06-26T17:28:01.9341101Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=c85b52edf8e1423cad7b644dd27f4f48;SharedAccessKeyName=c80204aaa8a642da92caec3222b48ecd;SharedAccessKey=OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '735'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:42 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:01 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -311,23 +431,40 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys?api-version=2019-07-01-Preview
   response:
     body:
       string: '[{"id":"6b879e1052f64a689884abe3fb6c2428","repositoryId":"621158b3145e471b99b3f9f4379e5026","userRole":"Reader","secret":"IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","createdOn":"2019-07-23T17:03:42.0699322Z","updatedOn":"2019-07-23T17:03:42.0699322Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=621158b3145e471b99b3f9f4379e5026;SharedAccessKeyName=6b879e1052f64a689884abe3fb6c2428;SharedAccessKey=IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}]'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '[{"id":"c80204aaa8a642da92caec3222b48ecd","repositoryId":"c85b52edf8e1423cad7b644dd27f4f48","userRole":"Reader","secret":"OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","createdOn":"2019-06-26T17:28:01.9341101Z","lastUpdated":"2019-06-26T17:28:01.9341101Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=c85b52edf8e1423cad7b644dd27f4f48;SharedAccessKeyName=c80204aaa8a642da92caec3222b48ecd;SharedAccessKey=OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}]'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '737'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:45 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:02 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -353,23 +490,40 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys/6b879e1052f64a689884abe3fb6c2428?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"id":"6b879e1052f64a689884abe3fb6c2428","repositoryId":"621158b3145e471b99b3f9f4379e5026","userRole":"Reader","secret":"IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","createdOn":"2019-07-23T17:03:42.0699322Z","updatedOn":"2019-07-23T17:03:42.0699322Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=621158b3145e471b99b3f9f4379e5026;SharedAccessKeyName=6b879e1052f64a689884abe3fb6c2428;SharedAccessKey=IxOXc8uLde/huoHACf8l+UFn94GhnU5QCCwjEeMXj9lRHj7N+TngqenyTRtJ8ap0UCzJQF9L6yH0edqSosEvoA==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys/c80204aaa8a642da92caec3222b48ecd?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"id":"c80204aaa8a642da92caec3222b48ecd","repositoryId":"c85b52edf8e1423cad7b644dd27f4f48","userRole":"Reader","secret":"OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","createdOn":"2019-06-26T17:28:01.9341101Z","lastUpdated":"2019-06-26T17:28:01.9341101Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=c85b52edf8e1423cad7b644dd27f4f48;SharedAccessKeyName=c80204aaa8a642da92caec3222b48ecd;SharedAccessKey=OsWJhP5f8dP0SV3YQv0mpy/2V/WNCcS9QqrDgkxdARKAWF8zaz6FFX/zujevS8dX2cf3VRuA+84azkGiDyg5xg==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '735'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:47 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:02 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -384,7 +538,11 @@ interactions:
       code: 200
       message: OK
 - request:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
     body: '{"properties": {"id": "6b879e1052f64a689884abe3fb6c2428", "userRole": "admin"}}'
+=======
+    body: '{"properties": {"id": "c80204aaa8a642da92caec3222b48ecd", "userRole": "admin"}}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       Accept:
       - application/json
@@ -397,23 +555,40 @@ interactions:
       Content-Type:
       - application/json-patch+json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: PUT
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"id":"6b879e1052f64a689884abe3fb6c2428","repositoryId":"621158b3145e471b99b3f9f4379e5026","userRole":"Admin","secret":"M29V+TfbN7Aqpn8nFaA5rDYrHeKrfYgw1azGiys1rkpC0APBfWnxc5llev7HGocO74j7whnLUEZmtt1J46rXPg==","tenantId":"beea802c-319f-4438-8a03-e03255ff460e","tenantName":"beea802c-319f-4438-8a03-e03255ff460e","createdOn":"2019-07-23T17:03:42.0699322Z","updatedOn":"2019-07-23T17:03:51.0218656Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=621158b3145e471b99b3f9f4379e5026;SharedAccessKeyName=6b879e1052f64a689884abe3fb6c2428;SharedAccessKey=M29V+TfbN7Aqpn8nFaA5rDYrHeKrfYgw1azGiys1rkpC0APBfWnxc5llev7HGocO74j7whnLUEZmtt1J46rXPg==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: PUT
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"id":"c80204aaa8a642da92caec3222b48ecd","repositoryId":"c85b52edf8e1423cad7b644dd27f4f48","userRole":"Admin","secret":"kYgsQOi/eEjoSML9W1ODxYZNF+VcjJ+TXWvakM8njl5uuNeievLzPf8v9geeKjDRh8JFF31Ah9g10uEipf5/ew==","tenantId":"72f988bf-86f1-41af-91ab-2d7cd011db47","tenantName":"microsoft.com","createdOn":"2019-06-26T17:28:01.9341101Z","lastUpdated":"2019-06-26T17:28:03.0424677Z","connectionString":"HostName=https://repo.azureiotrepository-test.com;RepositoryId=c85b52edf8e1423cad7b644dd27f4f48;SharedAccessKeyName=c80204aaa8a642da92caec3222b48ecd;SharedAccessKey=kYgsQOi/eEjoSML9W1ODxYZNF+VcjJ+TXWvakM8njl5uuNeievLzPf8v9geeKjDRh8JFF31Ah9g10uEipf5/ew==","serviceEndpoint":"https://repo.azureiotrepository-test.com"}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '734'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:50 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:02 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -441,19 +616,33 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: DELETE
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys/6b879e1052f64a689884abe3fb6c2428?api-version=2019-07-01-Preview
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: DELETE
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys/c80204aaa8a642da92caec3222b48ecd?api-version=2019-07-01-Preview
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
   response:
     body:
       string: ''
     headers:
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:53 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:02 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       x-content-type-options:
@@ -475,9 +664,15 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: GET
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026/authKeys?api-version=2019-07-01-Preview
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: GET
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48/authKeys?api-version=2019-07-01-Preview
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
   response:
     body:
       string: '[]'
@@ -487,11 +682,19 @@ interactions:
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:55 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:03 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
@@ -519,23 +722,40 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       User-Agent:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - python/3.7.1 (Windows-10-10.0.17763-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
     method: DELETE
     uri: https://provider.azureiotrepository-test.com/repositories/621158b3145e471b99b3f9f4379e5026?api-version=2019-07-01-Preview
   response:
     body:
       string: '{"status":"Deleted","provisioningState":"dc3127e18f0f4573a125114baeaad98a","id":"621158b3145e471b99b3f9f4379e5026","pollBackUri":null}'
+=======
+      - python/3.7.3 (Windows-10-10.0.18922-SP0) msrest/0.6.8 digitaltwinrepositoryprovisioningservice/v1
+    method: DELETE
+    uri: https://provider.azureiotrepository-test.com/repositories/c85b52edf8e1423cad7b644dd27f4f48?api-version=2019-07-01-Preview
+  response:
+    body:
+      string: '{"status":"Deleted","provisioningState":"72da99435f724ff5bed613470f93472f","id":"c85b52edf8e1423cad7b644dd27f4f48","pollBackUri":null}'
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
     headers:
       content-length:
       - '134'
       content-type:
       - application/json; charset=utf-8
       date:
+<<<<<<< HEAD:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_pnp.yaml
       - Tue, 23 Jul 2019 17:03:59 GMT
       server:
       - Kestrel
       set-cookie:
       - ARRAffinity=87ca36d9eab96cb0d1b623eebad83f4ffc82d3755d0e96a20ce504b583eead85;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+=======
+      - Wed, 26 Jun 2019 17:28:03 GMT
+      server:
+      - Kestrel
+      set-cookie:
+      - ARRAffinity=d29ec50e2353fd96ac8ed72619c1a2fb36a21ed6c3f22a5075cd2c606bb89829;Path=/;HttpOnly;Domain=provider.azureiotrepository-test.com
+>>>>>>> Test run updates - fixed error in test certificate start time in DPS verify test:src/azure-cli/azure/cli/command_modules/iot/tests/latest/recordings/test_iot_digitialtwin.yaml
       strict-transport-security:
       - max-age=31536000; includeSubDomains
       transfer-encoding:
