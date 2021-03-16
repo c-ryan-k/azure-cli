@@ -23,6 +23,7 @@ from azure.mgmt.iothub.models import (IotHubSku,
                                       EventHubProperties,
                                       FailoverInput,
                                       FeedbackProperties,
+                                      ManagedIdentity,
                                       MessagingEndpointProperties,
                                       OperationInputs,
                                       EnrichmentProperties,
@@ -400,13 +401,15 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                    fileupload_sas_ttl=1,
                    fileupload_storage_authentication_type=None,
                    fileupload_storage_container_uri=None,
+                   fileupload_storage_identity=None,
                    min_tls_version=None,
-                   tags=None):
+                   tags=None,
+                   identities=None):
     from datetime import timedelta
     cli_ctx = cmd.cli_ctx
     if enable_fileupload_notifications:
         if not fileupload_storage_connectionstring or not fileupload_storage_container_name:
-            raise CLIError('Please specify storage endpoint(storage connection string and storage container name).')
+            raise CLIError('Please specify storage endpoint (storage connection string and storage container name).')
     if fileupload_storage_connectionstring and not fileupload_storage_container_name:
         raise CLIError('Please mention storage container name.')
     if fileupload_storage_container_name and not fileupload_storage_connectionstring:
@@ -416,6 +419,9 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         raise CLIError('Key-based authentication requires a connection string.')
     if identity_based_file_upload and not fileupload_storage_container_uri:
         raise CLIError('Identity-based authentication requires a storage container uri (--fileupload-storage-container-uri, --fcu).')
+    if not identity_based_file_upload and fileupload_storage_identity:
+        raise CLIError('In order to set a fileupload storage identity, please set file upload storage authentication (--fsa) to IdentityBased')
+
     location = _ensure_location(cli_ctx, resource_group_name, location)
     sku = IotHubSkuInfo(name=sku, capacity=unit)
 
@@ -437,7 +443,8 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         connection_string=fileupload_storage_connectionstring if fileupload_storage_connectionstring else '',
         container_name=fileupload_storage_container_name if fileupload_storage_container_name else '',
         authentication_type=fileupload_storage_authentication_type if fileupload_storage_authentication_type else None,
-        container_uri=fileupload_storage_container_uri if fileupload_storage_container_uri else '')
+        container_uri=fileupload_storage_container_uri if fileupload_storage_container_uri else '',
+        identity=ManagedIdentity(fileupload_storage_identity) if fileupload_storage_identity else None)
 
     properties = IotHubProperties(event_hub_endpoints=event_hub_dic,
                                   messaging_endpoints=msg_endpoint_dic,
@@ -450,6 +457,16 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                         sku=sku,
                                         properties=properties,
                                         tags=tags)
+    if identities:
+        user_identities = [identity for identity in identities if identity != '[system]']
+        for identity in user_identities:
+            hub_description.identity.user_assigned_identities[identity] = {}
+
+        if '[system]' in identities:
+            hub_description.identity.type = "SystemAssigned, UserAssigned" if hub_description.identity.user_assigned_identities else "SystemAssigned"
+        else:
+            hub_description.identity.type = "UserAssigned"
+
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description)
 
 
@@ -489,6 +506,7 @@ def update_iot_hub_custom(instance,
                           fileupload_sas_ttl=None,
                           fileupload_storage_authentication_type=None,
                           fileupload_storage_container_uri=None,
+                          fileupload_storage_identity=None,
                           tags=None):
     from datetime import timedelta
     if tags is not None:
@@ -536,6 +554,14 @@ def update_iot_hub_custom(instance,
         raise CLIError('Please mention storage connection string.')
     if fileupload_sas_ttl is not None:
         instance.properties.storage_endpoints['$default'].sas_ttl_as_iso8601 = timedelta(hours=fileupload_sas_ttl)
+
+    # If we are now (or will be) using fsa=identity AND we've set a new identity
+    if instance.properties.storage_endpoints['$default'].authentication_type == AuthenticationType.IdentityBased and fileupload_storage_identity:
+        # setup new fsi
+        instance.properties.storage_endpoints['$default'].identity = ManagedIdentity(fileupload_storage_identity)
+    # otherwise - let them know they need identity-based auth enabled
+    elif fileupload_storage_identity:
+        raise CLIError('In order to set a file upload storage identity, you must set the file upload storage authentication type (--fsa) to IdentityBased')
     return instance
 
 
@@ -603,6 +629,69 @@ def iot_hub_consumer_group_get(client, hub_name, consumer_group_name, resource_g
 def iot_hub_consumer_group_delete(client, hub_name, consumer_group_name, resource_group_name=None, event_hub_name='events'):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
     return client.iot_hub_resource.delete_event_hub_consumer_group(resource_group_name, hub_name, event_hub_name, consumer_group_name)
+
+
+def iot_hub_identity_assign(cmd, client, hub_name, identities, role=None, scopes=None, resource_group_name=None):
+    resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
+    hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
+
+    # if assigning a [system] identity, use role and scopes to update it after
+    user_identities = [identity for identity in identities if identity != '[system]']
+    for identity in user_identities:
+        hub.identity.user_assigned_identities[identity] = {}
+
+    if '[system]' in identities or 'SystemAssigned' in hub.identity.type:
+        hub.identity.type = "SystemAssigned, UserAssigned" if hub.identity.user_assigned_identities else "SystemAssigned"
+    else:
+        hub.identity.type = "UserAssigned" if hub.identity.user_assigned_identities else "None"
+
+    if '[system]' in identities:
+        if role and scopes:
+            # update hub
+            hub = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+            # get hub identity
+
+            # system_identity = hub.identity.principalId
+
+            # setup scope and role for system_identity
+            return hub
+
+    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+
+
+def iot_hub_identity_show(cmd, client, hub_name, resource_group_name=None):
+    resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
+    hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
+    return hub.identity
+
+def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_name=None):
+    resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
+    hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
+    hub_identity = hub.identity
+
+    # if identity is '[system]', turn off system managed identity
+    if '[system]' in identities:
+        if 'SystemAssigned' not in hub_identity.type:
+            raise CLIError('Hub {} is not currently using a System-assigned Identity'.format(hub_name))
+        hub_identity.type = "UserAssigned" if 'UserAssigned' in hub.identity.type else "None"
+
+    # separate user identities from system identity
+    user_identities = [identity for identity in identities if identity != '[system]']
+
+    # loop through user_identities to remove
+    for identity in user_identities:
+        if not hub_identity.user_assigned_identities[identity]:
+            raise CLIError('Hub {0} is not currently using a user-assigned identity with id: {1}'.format(hub_name, identity))
+        del hub_identity.user_assigned_identities[identity]
+
+    # assign identity type correctly
+    if 'SystemAssigned' in hub_identity.type:
+        hub_identity.type = 'SystemAssigned, UserAssigned' if hub_identity.user_assigned_identities else 'SystemAssigned'
+    else:
+        hub_identity.type = 'UserAssigned' if hub_identity.user_assigned_identities else 'None'
+
+    hub.identity = hub_identity
+    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
 
 
 def iot_hub_policy_list(client, hub_name, resource_group_name=None):
