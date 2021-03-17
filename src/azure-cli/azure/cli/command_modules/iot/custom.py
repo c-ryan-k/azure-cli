@@ -792,9 +792,14 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                                     connection_string=None, container_name=None, encoding=None,
                                     resource_group_name=None, batch_frequency=300, chunk_size_window=300,
                                     file_name_format='{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}',
-                                    authentication_type=None, endpoint_uri=None, entity_path=None):
+                                    authentication_type=None, endpoint_uri=None, entity_path=None,
+                                    identity=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
     hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
+
+    if identity and authentication_type != AuthenticationType.IDENTITY_BASED:
+        raise CLIError("In order to use an identity for authentication, you must select --auth-type as 'identityBased'")
+
     if EndpointType.EventHub.value == endpoint_type.lower():
         hub.properties.routing.endpoints.event_hubs.append(
             RoutingEventHubProperties(
@@ -804,7 +809,8 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 resource_group=endpoint_resource_group,
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
-                entity_path=entity_path
+                entity_path=entity_path,
+                identity=ManagedIdentity(identity) if identity else None
             )
         )
     elif EndpointType.ServiceBusQueue.value == endpoint_type.lower():
@@ -816,7 +822,8 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 resource_group=endpoint_resource_group,
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
-                entity_path=entity_path
+                entity_path=entity_path,
+                identity=ManagedIdentity(identity) if identity else None
             )
         )
     elif EndpointType.ServiceBusTopic.value == endpoint_type.lower():
@@ -828,7 +835,8 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 resource_group=endpoint_resource_group,
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
-                entity_path=entity_path
+                entity_path=entity_path,
+                identity=ManagedIdentity(identity) if identity else None
             )
         )
     elif EndpointType.AzureStorageContainer.value == endpoint_type.lower():
@@ -846,7 +854,8 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 batch_frequency_in_seconds=batch_frequency,
                 max_chunk_size_in_bytes=(chunk_size_window * 1048576),
                 authentication_type=authentication_type,
-                endpoint_uri=endpoint_uri
+                endpoint_uri=endpoint_uri,
+                identity=ManagedIdentity(identity) if identity else None
             )
         )
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
