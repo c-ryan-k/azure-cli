@@ -420,6 +420,20 @@ class IoTHubTest(ScenarioTest):
         identity_storage_role = 'Storage Blob Data Contributor'
         storage_account_id = self.cmd('storage account show -n {0} -g {1}'.format(storage_account, rg)).get_output_in_json()['id']
 
+        # identities
+        system_identity = '[system]'
+        user_identity_names = [
+            self.create_random_name(prefix='iot-user-identity', length=32),
+            self.create_random_name(prefix='iot-user-identity', length=32),
+            self.create_random_name(prefix='iot-user-identity', length=32)
+        ]
+
+        # create user-assigned identity
+        user_identity_1, user_identity_2, user_identity_3 = 
+            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[0]., rg)).get_output_in_json(),
+            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json(),
+            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()
+
         # identity hub creation
         import os
         templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'templates', 'identity.json')
@@ -444,7 +458,7 @@ class IoTHubTest(ScenarioTest):
         sleep(30)
 
         # Test 'az iot hub update' with Identity-based fileUpload
-        updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fcs {2} --fc {3} --fn true --fnt 32 --fnd 80 --rd 4 '
+        updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fsi [system] --fcs {2} --fc {3} --fn true --fnt 32 --fnd 80 --rd 4 '
                                '--ct 34 --cdd 46 --ft 43 --fld 10 --fd 76'
                                .format(identity_hub, identity_based_auth, storageConnectionString, containerName)).get_output_in_json()
         assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
@@ -458,6 +472,22 @@ class IoTHubTest(ScenarioTest):
         # Test 'az iot hub routing-endpoint create' with Identity-based event hub endpoint
         self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --endpoint-uri {7} --entity-path {8}'
                  .format(identity_hub, rg, event_hub_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, eventhub_endpoint_uri, entity_path),
+                 checks=[self.check('length(eventHubs[*])', 1),
+                         self.check('eventHubs[0].resourceGroup', rg),
+                         self.check('eventHubs[0].name', event_hub_identity_endpoint_name),
+                         self.check('eventHubs[0].authenticationType', identity_based_auth),
+                         self.check('eventHubs[0].connectionString', None),
+                         self.check('eventHubs[0].endpointUri', eventhub_endpoint_uri),
+                         self.check('eventHubs[0].entityPath', entity_path),
+                         self.check('length(serviceBusQueues[*])', 0),
+                         self.check('length(serviceBusTopics[*])', 0),
+                         self.check('length(storageContainers[*])', 0)])
+
+        # assign individual identity to hub and test routing-endpoint with user-assigned identity
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, user_identity_1.id))
+
+        self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --identity {7} --endpoint-uri {8} --entity-path {9}'
+                 .format(identity_hub, rg, event_hub_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, user_identity_1.id, eventhub_endpoint_uri, entity_path),
                  checks=[self.check('length(eventHubs[*])', 1),
                          self.check('eventHubs[0].resourceGroup', rg),
                          self.check('eventHubs[0].name', event_hub_identity_endpoint_name),
@@ -540,6 +570,30 @@ class IoTHubTest(ScenarioTest):
         # endpoint delete
         self.cmd('network private-endpoint-connection delete --type {0} -n {1} --resource-name {2} -g {3} -y'
                  .format(private_endpoint_type, private_endpoint_name, identity_hub, rg))
+
+        # testing new identity namespace
+
+        # add multiple user-assigned identities (2, 3)
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2} {3}'.format(identity_hub, rg, user_identity_2.id, user_identity_3.id))
+
+        # show identity
+        self.cmd('iot hub identity show -n {0} -g {0}'.format(identity_hub, rg))
+
+        # remove single identity (system)
+        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity))
+
+        # remove all remaining identities (2, 3)
+        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2} {3} {4}'.format(identity_hub, rg, user_identity_2.id, user_identity_3.id))
+
+        # re-add system identity
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {3}'.format(identity_hub, rg, system_identity))
+
+        
+        hub = self.cmd('iot hub identity remove --identities {0} -n {1} -g {2}'.format(system_identity, identity_hub, rg)).get_output_in_json()
+        assert hub.identity.type == None
+
+
+        
 
     def _get_eventhub_connectionstring(self, rg):
         ehNamespace = self.create_random_name(prefix='ehNamespaceiothubfortest1', length=32)
