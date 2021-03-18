@@ -61,3 +61,14 @@ class AuthenticationType(Enum):
     """
     KeyBased = 'keybased'
     IdentityBased = 'identitybased'
+
+
+# pylint: disable=too-few-public-methods
+class IdentityType(Enum):
+    """
+    Type of managed identity for the IoT Hub.
+    """
+    SystemAssigned = 'SystemAssigned'
+    SystemAssignedUserAssigned = 'SystemAssigned,UserAssigned'
+    UserAssigned = 'UserAssigned'
+    NoIdentity = 'None'

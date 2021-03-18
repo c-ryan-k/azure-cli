@@ -12,6 +12,7 @@ from azure.cli.core.util import sdk_no_wait
 
 from azure.mgmt.iothub.models import (IotHubSku,
                                       AccessRights,
+                                      ArmIdentity,
                                       CertificateBodyDescription,
                                       CertificateVerificationDescription,
                                       CloudToDeviceProperties,
@@ -48,7 +49,8 @@ from azure.mgmt.iothubprovisioningservices.models import (ProvisioningServiceDes
 from azure.mgmt.iotcentral.models import (AppSkuInfo,
                                           App)
 
-from azure.cli.command_modules.iot.shared import EndpointType, EncodingFormat, RenewKeyType, AuthenticationType
+from azure.cli.command_modules.iot.shared import EndpointType, EncodingFormat, RenewKeyType, AuthenticationType, IdentityType
+from azure.cli.command_modules.iot._constants import SYSTEM_IDENTITY
 from ._client_factory import resource_service_factory
 from ._utils import open_certificate, generate_key
 
@@ -457,14 +459,15 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                         properties=properties,
                                         tags=tags)
     if identities:
-        user_identities = [identity for identity in identities if identity != '[system]']
+        hub_description.identity = ArmIdentity()
+        user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
         for identity in user_identities:
             hub_description.identity.user_assigned_identities[identity] = {}
 
-        if '[system]' in identities:
-            hub_description.identity.type = "SystemAssigned, UserAssigned" if hub_description.identity.user_assigned_identities else "SystemAssigned"
+        if SYSTEM_IDENTITY in identities:
+            hub_description.identity.type = IdentityType.SystemAssignedUserAssigned if hub_description.identity.user_assigned_identities else IdentityType.SystemAssigned
         else:
-            hub_description.identity.type = "UserAssigned"
+            hub_description.identity.type = IdentityType.UserAssigned
 
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description)
 
@@ -635,16 +638,20 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, role=None, scopes
     hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
 
     # if assigning a [system] identity, use role and scopes to update it after
-    user_identities = [identity for identity in identities if identity != '[system]']
+    user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
     for identity in user_identities:
         hub.identity.user_assigned_identities[identity] = {}
 
-    if '[system]' in identities or 'SystemAssigned' in hub.identity.type:
-        hub.identity.type = "SystemAssigned, UserAssigned" if hub.identity.user_assigned_identities else "SystemAssigned"
+    if SYSTEM_IDENTITY in identities or hub.identity.type in [IdentityType.SystemAssignedUserAssigned, IdentityType.SystemAssigned]:
+        hub.identity.type = IdentityType.SystemAssignedUserAssigned if hub.identity.user_assigned_identities else IdentityType.SystemAssigned
     else:
-        hub.identity.type = "UserAssigned" if hub.identity.user_assigned_identities else "None"
+        hub.identity.type = IdentityType.UserAssigned if hub.identity.user_assigned_identities else IdentityType.NoIdentity
 
-    if '[system]' in identities:
+    # user_assigned_identities must be 'None', not '{}' for SystemAssigned only
+    if hub.identity.type == IdentityType.SystemAssigned:
+       hub.identity.user_assigned_identities = None
+
+    if SYSTEM_IDENTITY in identities:
         if role and scopes:
             # update hub
             hub = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
@@ -669,13 +676,13 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
     hub_identity = hub.identity
 
     # if identity is '[system]', turn off system managed identity
-    if '[system]' in identities:
-        if 'SystemAssigned' not in hub_identity.type:
+    if SYSTEM_IDENTITY in identities:
+        if hub_identity.type not in [IdentityType.SystemAssigned, IdentityType.SystemAssignedUserAssigned]:
             raise CLIError('Hub {} is not currently using a System-assigned Identity'.format(hub_name))
-        hub_identity.type = "UserAssigned" if 'UserAssigned' in hub.identity.type else "None"
+        hub_identity.type = IdentityType.UserAssigned if hub.identity.type in [IdentityType.UserAssigned, IdentityType.SystemAssignedUserAssigned] else IdentityType.NoIdentity
 
     # separate user identities from system identity
-    user_identities = [identity for identity in identities if identity != '[system]']
+    user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
 
     # loop through user_identities to remove
     for identity in user_identities:
@@ -684,10 +691,14 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
         del hub_identity.user_assigned_identities[identity]
 
     # assign identity type correctly
-    if 'SystemAssigned' in hub_identity.type:
-        hub_identity.type = 'SystemAssigned, UserAssigned' if hub_identity.user_assigned_identities else 'SystemAssigned'
+    if hub_identity.type in [IdentityType.SystemAssigned, IdentityType.SystemAssignedUserAssigned]:
+        hub_identity.type = IdentityType.SystemAssignedUserAssigned if hub_identity.user_assigned_identities else IdentityType.SystemAssigned
     else:
-        hub_identity.type = 'UserAssigned' if hub_identity.user_assigned_identities else 'None'
+        hub_identity.type = IdentityType.UserAssigned if hub_identity.user_assigned_identities else IdentityType.NoIdentity
+    
+    # user_assigned_identities must be 'None', not '{}' for SystemAssigned only
+    if hub_identity.type == IdentityType.SystemAssigned:
+       hub_identity.user_assigned_identities = None
 
     hub.identity = hub_identity
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
