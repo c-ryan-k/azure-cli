@@ -406,7 +406,9 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                    fileupload_storage_identity=None,
                    min_tls_version=None,
                    tags=None,
-                   identities=None):
+                   identities=None,
+                   identity_role=None,
+                   identity_scopes=None):
     from datetime import timedelta
     cli_ctx = cmd.cli_ctx
     if enable_fileupload_notifications:
@@ -446,7 +448,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         container_name=fileupload_storage_container_name if fileupload_storage_container_name else '',
         authentication_type=fileupload_storage_authentication_type if fileupload_storage_authentication_type else None,
         container_uri=fileupload_storage_container_uri if fileupload_storage_container_uri else '',
-        identity=ManagedIdentity(fileupload_storage_identity) if fileupload_storage_identity else None)
+        identity=ManagedIdentity(user_assigned_identity=fileupload_storage_identity) if fileupload_storage_identity else None)
 
     properties = IotHubProperties(event_hub_endpoints=event_hub_dic,
                                   messaging_endpoints=msg_endpoint_dic,
@@ -459,18 +461,29 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                         sku=sku,
                                         properties=properties,
                                         tags=tags)
-    if identities:
-        hub_description.identity = ArmIdentity()
-        user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
-        for identity in user_identities:
-            hub_description.identity.user_assigned_identities[identity] = {}
+    hub_description.identity = _build_identity(identities) if identities else None
+    if identity_role and not identity_scopes:
+        raise CLIError('At least one scope required for identity role assignment')
 
-        if SYSTEM_IDENTITY in identities:
-            hub_description.identity.type = IdentityType.SystemAssignedUserAssigned if hub_description.identity.user_assigned_identities else IdentityType.SystemAssigned
-        else:
-            hub_description.identity.type = IdentityType.UserAssigned
+    def identity_assignment(lro):
+        try:
+            from azure.cli.core.commands.arm import assign_identity
+            instance = lro.resource().as_dict()
+            identity = instance.get("identity")
+            if identity:
+                principal_id = identity.get("principal_id")
+                if principal_id:
+                    hub_description.identity.principal_id = principal_id
+                    for scope in identity_scopes:
+                        hub = assign_identity(cmd.cli_ctx, lambda: hub_description, lambda hub: hub_description, identity_role=identity_role, identity_scope=scope)
+                    return hub
+        except CloudError as e:
+            raise e
 
-    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description)
+    create = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description)
+    if identity_role and identity_scopes:
+        create.add_done_callback(identity_assignment)
+    return create
 
 
 def iot_hub_get(cmd, client, hub_name, resource_group_name=None):
@@ -561,10 +574,14 @@ def update_iot_hub_custom(instance,
     # If we are now (or will be) using fsa=identity AND we've set a new identity
     if instance.properties.storage_endpoints['$default'].authentication_type == AuthenticationType.IdentityBased and fileupload_storage_identity:
         # setup new fsi
-        instance.properties.storage_endpoints['$default'].identity = ManagedIdentity(fileupload_storage_identity)
+        instance.properties.storage_endpoints['$default'].identity = ManagedIdentity(user_assigned_identity=fileupload_storage_identity) if fileupload_storage_identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
     # otherwise - let them know they need identity-based auth enabled
     elif fileupload_storage_identity:
         raise CLIError('In order to set a file upload storage identity, you must set the file upload storage authentication type (--fsa) to IdentityBased')
+
+    # TODO - ensure this is necessary
+    if not instance.identity.user_assigned_identities:
+        instance.identity.user_assigned_identities = None
     return instance
 
 
@@ -636,40 +653,42 @@ def iot_hub_consumer_group_delete(client, hub_name, consumer_group_name, resourc
 
 def iot_hub_identity_assign(cmd, client, hub_name, identities, role=None, scopes=None, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
-    hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
 
-    # if assigning a [system] identity, use role and scopes to update it after
-    user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
-    for identity in user_identities:
-        hub.identity.user_assigned_identities[identity] = {}
+    def getter():
+        return iot_hub_get(cmd, client, hub_name, resource_group_name)
+    def setter(hub):
+        user_identities = [i for i in identities if i != SYSTEM_IDENTITY]
+        for identity in user_identities:
+            hub.identity.user_assigned_identities[identity] = hub.identity.user_assigned_identities.get(identity, {})
 
-    if SYSTEM_IDENTITY in identities or hub.identity.type in [IdentityType.SystemAssignedUserAssigned, IdentityType.SystemAssigned]:
-        hub.identity.type = IdentityType.SystemAssignedUserAssigned if hub.identity.user_assigned_identities else IdentityType.SystemAssigned
+        has_system_identity = hub.identity.type in [IdentityType.system_assigned_user_assigned.value, IdentityType.system_assigned.value]
+
+        if SYSTEM_IDENTITY in identities or has_system_identity:
+            hub.identity.type = IdentityType.system_assigned_user_assigned.value if hub.identity.user_assigned_identities else IdentityType.system_assigned.value
+        else:
+            hub.identity.type = IdentityType.user_assigned.value if hub.identity.user_assigned_identities else IdentityType.none.value
+
+        hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
+        poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+        return LongRunningOperation(cmd.cli_ctx)(poller)
+
+    if role and not scopes:
+        raise CLIError('At least one scope required for identity role assignment')
+
+    if role and scopes:
+        from azure.cli.core.commands.arm import assign_identity
+        for scope in [scopes]:
+            hub = assign_identity(cmd.cli_ctx, getter, setter, identity_role=role, identity_scope=scope)
+        return hub
     else:
-        hub.identity.type = IdentityType.UserAssigned if hub.identity.user_assigned_identities else IdentityType.NoIdentity
-
-    # user_assigned_identities must be 'None', not '{}' for SystemAssigned only
-    if hub.identity.type == IdentityType.SystemAssigned:
-       hub.identity.user_assigned_identities = None
-
-    if SYSTEM_IDENTITY in identities:
-        if role and scopes:
-            # update hub
-            hub = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
-            # get hub identity
-
-            # system_identity = hub.identity.principalId
-
-            # setup scope and role for system_identity
-            return hub
-
-    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+        return setter(getter())
 
 
 def iot_hub_identity_show(cmd, client, hub_name, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
     hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
     return hub.identity
+
 
 def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
@@ -678,9 +697,12 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
 
     # if identity is '[system]', turn off system managed identity
     if SYSTEM_IDENTITY in identities:
-        if hub_identity.type not in [IdentityType.SystemAssigned, IdentityType.SystemAssignedUserAssigned]:
-            raise CLIError('Hub {} is not currently using a System-assigned Identity'.format(hub_name))
-        hub_identity.type = IdentityType.UserAssigned if hub.identity.type in [IdentityType.UserAssigned, IdentityType.SystemAssignedUserAssigned] else IdentityType.NoIdentity
+        if hub_identity.type not in [
+            IdentityType.system_assigned.value,
+            IdentityType.system_assigned_user_assigned.value
+        ]:
+            raise CLIError('Hub {} is not currently using a system-assigned identity'.format(hub_name))
+        hub_identity.type = IdentityType.user_assigned if hub.identity.type in [IdentityType.user_assigned.value, IdentityType.system_assigned_user_assigned.value] else IdentityType.none.value
 
     # separate user identities from system identity
     user_identities = [identity for identity in identities if identity != SYSTEM_IDENTITY]
@@ -691,14 +713,16 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
             raise CLIError('Hub {0} is not currently using a user-assigned identity with id: {1}'.format(hub_name, identity))
         del hub_identity.user_assigned_identities[identity]
 
-    # assign identity type correctly
-    if hub_identity.type in [IdentityType.SystemAssigned, IdentityType.SystemAssignedUserAssigned]:
-        hub_identity.type = IdentityType.SystemAssignedUserAssigned if hub_identity.user_assigned_identities else IdentityType.SystemAssigned
+    if hub_identity.type in [
+        IdentityType.system_assigned.value,
+        IdentityType.system_assigned_user_assigned.value
+    ]:
+        hub_identity.type = IdentityType.system_assigned_user_assigned.value if hub_identity.user_assigned_identities else IdentityType.system_assigned.value
     else:
-        hub_identity.type = IdentityType.UserAssigned if hub_identity.user_assigned_identities else IdentityType.NoIdentity
+        hub_identity.type = IdentityType.user_assigned.value if hub_identity.user_assigned_identities else IdentityType.none.value
     
-    # user_assigned_identities must be 'None', not '{}' for SystemAssigned only
-    if hub_identity.type == IdentityType.SystemAssigned:
+    # TODO - ensure this is necessary
+    if hub_identity.type == IdentityType.system_assigned.value:
        hub_identity.user_assigned_identities = None
 
     hub.identity = hub_identity
@@ -822,7 +846,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
                 entity_path=entity_path,
-                identity=ManagedIdentity(identity) if identity else None
+                identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
     elif EndpointType.ServiceBusQueue.value == endpoint_type.lower():
@@ -835,7 +859,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
                 entity_path=entity_path,
-                identity=ManagedIdentity(identity) if identity else None
+                identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
     elif EndpointType.ServiceBusTopic.value == endpoint_type.lower():
@@ -848,7 +872,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
                 entity_path=entity_path,
-                identity=ManagedIdentity(identity) if identity else None
+                identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
     elif EndpointType.AzureStorageContainer.value == endpoint_type.lower():
@@ -867,7 +891,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 max_chunk_size_in_bytes=(chunk_size_window * 1048576),
                 authentication_type=authentication_type,
                 endpoint_uri=endpoint_uri,
-                identity=ManagedIdentity(identity) if identity else None
+                identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
@@ -1249,3 +1273,22 @@ def _get_iot_central_app_by_name(client, app_name):
         raise CLIError(
             "No IoT Central application found with name {} in current subscription.".format(app_name))
     return target_app
+
+
+def _build_identity(identities):
+    identities = identities or []
+    identity_type = IdentityType.none.value
+    if not identities or SYSTEM_IDENTITY in identities:
+        identity_type = IdentityType.system_assigned.value
+    user_identities = [i for i in identities if i != SYSTEM_IDENTITY]
+    if user_identities and identity_type == IdentityType.system_assigned.value:
+        identity_type = IdentityType.system_assigned_user_assigned.value
+    elif user_identities:
+        identity_type = IdentityType.user_assigned.value
+
+    identity = ArmIdentity(type=identity_type)
+    if user_identities:
+        identity.user_assigned_identities = {i: {} for i in user_identities}
+    # else:
+    #     identity.user_assigned_identities = None
+    return identity
