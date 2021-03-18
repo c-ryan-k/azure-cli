@@ -68,7 +68,7 @@ class IdentityType(Enum):
     """
     Type of managed identity for the IoT Hub.
     """
-    SystemAssigned = 'SystemAssigned'
-    SystemAssignedUserAssigned = 'SystemAssigned,UserAssigned'
-    UserAssigned = 'UserAssigned'
-    NoIdentity = 'None'
+    system_assigned = "SystemAssigned"
+    user_assigned = "UserAssigned"
+    system_assigned_user_assigned = "SystemAssigned, UserAssigned"
+    none = "None"
