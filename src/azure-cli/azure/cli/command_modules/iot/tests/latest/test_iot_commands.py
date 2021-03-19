@@ -8,6 +8,7 @@ import mock
 
 from azure.cli.testsdk import ResourceGroupPreparer, ScenarioTest, StorageAccountPreparer
 from azure_devtools.scenario_tests import AllowLargeResponse
+from azure.cli.command_modules.iot.shared import IdentityType
 from .recording_processors import KeyReplacer
 
 
@@ -429,16 +430,14 @@ class IoTHubTest(ScenarioTest):
         ]
 
         # create user-assigned identity
-        user_identity_1, user_identity_2, user_identity_3 = 
-            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[0]., rg)).get_output_in_json(),
-            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json(),
-            self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()
+        with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
+            user_identity_1 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[0], rg)).get_output_in_json()
+            user_identity_2 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json()
+            user_identity_3 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()
+            # identity hub creation, assign role to storage container
+            self.cmd('iot hub create -n {0} -g {1} --sku s1 --location {2} --assign-identity {3} --role {4} --scopes {5}'
+                     .format(identity_hub, rg, location, system_identity, identity_storage_role, storage_account_id))
 
-        # identity hub creation
-        import os
-        templateFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'templates', 'identity.json')
-        self.cmd('deployment group create --name {0} -g {1} --template-file "{2}" --parameters name={3} --parameters location={4}'
-                 .format("identity-hub-deployment", resource_group, templateFile, identity_hub, location))
         hub_props = self.cmd('iot hub show --name {0}'.format(identity_hub), checks=[
             self.check('properties.minTlsVersion', '1.2'),
             self.check('identity.type', 'SystemAssigned')]).get_output_in_json()
@@ -446,12 +445,12 @@ class IoTHubTest(ScenarioTest):
         hub_object_id = hub_props['identity']['principalId']
         assert hub_object_id
 
-        # Add RBAC role for hub to storage container
-        with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
-            role_assignment = self.cmd('az role assignment create --role "{0}" --assignee "{1}" --scope "{2}"'
-                                       .format(identity_storage_role, hub_object_id, storage_account_id)).get_output_in_json()
+        # # Add RBAC role for hub to storage container
+        # with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
+        #     role_assignment = self.cmd('az role assignment create --role "{0}" --assignee "{1}" --scope "{2}"'
+        #                                .format(identity_storage_role, hub_object_id, storage_account_id)).get_output_in_json()
 
-        assert role_assignment['principalId'] == hub_object_id
+        # assert role_assignment['principalId'] == hub_object_id
 
         # Allow time for RBAC
         from time import sleep
@@ -573,27 +572,46 @@ class IoTHubTest(ScenarioTest):
 
         # testing new identity namespace
 
-        # add multiple user-assigned identities (2, 3)
-        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2} {3}'.format(identity_hub, rg, user_identity_2.id, user_identity_3.id))
-
         # show identity
-        self.cmd('iot hub identity show -n {0} -g {0}'.format(identity_hub, rg))
+        self.cmd('iot hub identity show -n {0} -g {1}'.format(identity_hub, rg),
+                 checks=[
+                     self.check('length(userAssignedIdentities)', 1),
+                     self.check('type', IdentityType.system_assigned_user_assigned.value),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id))])
+
+        # add multiple user-assigned identities (2, 3)
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2} {3}'
+                 .format(identity_hub, rg, user_identity_2.id, user_identity_3.id),
+                 checks=[
+                     self.check('length(userAssignedIdentities)', 3),
+                     self.check('type', IdentityType.system_assigned_user_assigned.value),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id)),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_2.id)),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_3.id))])
 
         # remove single identity (system)
-        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity))
+        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity),
+                 checks=[
+                     self.check('length(userAssignedIdentities)', 3),
+                     self.check('type', IdentityType.user_assigned.value),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id)),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_2.id)),
+                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_3.id))])
 
-        # remove all remaining identities (2, 3)
-        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2} {3} {4}'.format(identity_hub, rg, user_identity_2.id, user_identity_3.id))
+        # remove all remaining user identities (1, 2, 3)
+        self.cmd('iot hub identity remove -n {0} -g {1} --identities {2} {3} {4}'
+                 .format(identity_hub, rg, user_identity_1.id, user_identity_2.id, user_identity_3.id),
+                 checks=[
+                     self.check('length(userAssignedIdentities)', 0),
+                     self.check('type', IdentityType.none.value)])
 
         # re-add system identity
-        self.cmd('iot hub identity assign -n {0} -g {1} --identities {3}'.format(identity_hub, rg, system_identity))
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity),
+                 checks=[
+                     self.check('length(userAssignedIdentities)', 0),
+                     self.check('type', IdentityType.system_assigned.value)])
 
-        
-        hub = self.cmd('iot hub identity remove --identities {0} -n {1} -g {2}'.format(system_identity, identity_hub, rg)).get_output_in_json()
-        assert hub.identity.type == None
-
-
-        
+        assert hub.identity.type is None
 
     def _get_eventhub_connectionstring(self, rg):
         ehNamespace = self.create_random_name(prefix='ehNamespaceiothubfortest1', length=32)
