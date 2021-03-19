@@ -7,6 +7,7 @@
 from enum import Enum
 from knack.log import get_logger
 from knack.util import CLIError
+from msrestazure.azure_exceptions import CloudError
 from azure.cli.core.commands import LongRunningOperation
 from azure.cli.core.util import sdk_no_wait
 
@@ -474,8 +475,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                 if principal_id:
                     hub_description.identity.principal_id = principal_id
                     for scope in identity_scopes:
-                        hub = assign_identity(cmd.cli_ctx, lambda: hub_description, lambda hub: hub_description, identity_role=identity_role, identity_scope=scope)
-                    return hub
+                        assign_identity(cmd.cli_ctx, lambda: hub_description, lambda hub: hub_description, identity_role=identity_role, identity_scope=scope)
         except CloudError as e:
             raise e
 
@@ -552,31 +552,17 @@ def update_iot_hub_custom(instance,
         ttl = timedelta(hours=fileupload_notification_ttl)
         instance.properties.messaging_endpoints['fileNotifications'].ttl_as_iso8601 = ttl
 
-    identity_based_file_upload = fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value
-    if identity_based_file_upload:
-        instance.properties.storage_endpoints['$default'].authentication_type = AuthenticationType.IdentityBased
-        instance.properties.storage_endpoints['$default'].container_uri = fileupload_storage_container_uri
-    elif fileupload_storage_authentication_type is not None:
-        instance.properties.storage_endpoints['$default'].authentication_type = None
-        instance.properties.storage_endpoints['$default'].container_uri = None
-    # TODO - remove connection string and set containerURI once fileUpload SAS URL is enabled
-    if fileupload_storage_connectionstring is not None and fileupload_storage_container_name is not None:
-        instance.properties.storage_endpoints['$default'].connection_string = fileupload_storage_connectionstring
-        instance.properties.storage_endpoints['$default'].container_name = fileupload_storage_container_name
-    elif fileupload_storage_connectionstring is not None:
-        raise CLIError('Please mention storage container name.')
-    elif fileupload_storage_container_name is not None:
-        raise CLIError('Please mention storage connection string.')
-    if fileupload_sas_ttl is not None:
-        instance.properties.storage_endpoints['$default'].sas_ttl_as_iso8601 = timedelta(hours=fileupload_sas_ttl)
+    default_storage_endpoint = _process_fileupload_args(
+        instance.properties.storage_endpoints['$default'],
+        fileupload_storage_connectionstring,
+        fileupload_storage_container_name,
+        fileupload_sas_ttl,
+        fileupload_storage_authentication_type,
+        fileupload_storage_container_uri,
+        fileupload_storage_identity,
+    )
 
-    # If we are now (or will be) using fsa=identity AND we've set a new identity
-    if instance.properties.storage_endpoints['$default'].authentication_type == AuthenticationType.IdentityBased and fileupload_storage_identity:
-        # setup new fsi
-        instance.properties.storage_endpoints['$default'].identity = ManagedIdentity(user_assigned_identity=fileupload_storage_identity) if fileupload_storage_identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
-    # otherwise - let them know they need identity-based auth enabled
-    elif fileupload_storage_identity:
-        raise CLIError('In order to set a file upload storage identity, you must set the file upload storage authentication type (--fsa) to IdentityBased')
+    instance.properties.storage_endpoints['$default'] = default_storage_endpoint
 
     # TODO - ensure this is necessary
     if not instance.identity.user_assigned_identities:
@@ -655,6 +641,7 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
 
     def getter():
         return iot_hub_get(cmd, client, hub_name, resource_group_name)
+
     def setter(hub):
         user_identities = [i for i in identities if i != SYSTEM_IDENTITY]
         for identity in user_identities:
@@ -679,8 +666,7 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
         for scope in identity_scopes:
             hub = assign_identity(cmd.cli_ctx, getter, setter, identity_role=identity_role, identity_scope=scope)
         return hub.identity
-    else:
-        return setter(getter()).identity
+    return setter(getter()).identity
 
 
 def iot_hub_identity_show(cmd, client, hub_name, resource_group_name=None):
@@ -697,8 +683,8 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
     # if identity is '[system]', turn off system managed identity
     if SYSTEM_IDENTITY in identities:
         if hub_identity.type not in [
-            IdentityType.system_assigned.value,
-            IdentityType.system_assigned_user_assigned.value
+                IdentityType.system_assigned.value,
+                IdentityType.system_assigned_user_assigned.value
         ]:
             raise CLIError('Hub {} is not currently using a system-assigned identity'.format(hub_name))
         hub_identity.type = IdentityType.user_assigned if hub.identity.type in [IdentityType.user_assigned.value, IdentityType.system_assigned_user_assigned.value] else IdentityType.none.value
@@ -713,16 +699,16 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
         del hub_identity.user_assigned_identities[identity]
 
     if hub_identity.type in [
-        IdentityType.system_assigned.value,
-        IdentityType.system_assigned_user_assigned.value
+            IdentityType.system_assigned.value,
+            IdentityType.system_assigned_user_assigned.value
     ]:
         hub_identity.type = IdentityType.system_assigned_user_assigned.value if hub_identity.user_assigned_identities else IdentityType.system_assigned.value
     else:
         hub_identity.type = IdentityType.user_assigned.value if hub_identity.user_assigned_identities else IdentityType.none.value
-    
+
     # TODO - ensure this is necessary
     if hub_identity.type == IdentityType.system_assigned.value:
-       hub_identity.user_assigned_identities = None
+        hub_identity.user_assigned_identities = None
 
     hub.identity = hub_identity
     poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
@@ -1066,12 +1052,10 @@ def iot_message_enrichment_list(cmd, client, hub_name, resource_group_name=None)
 def iot_hub_devicestream_show(cmd, client, hub_name, resource_group_name=None):
     from azure.cli.core.commands.client_factory import get_mgmt_service_client, ResourceType
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
-    # TODO - device streams requires a preview API-version
-    return False
-    # DeviceStreams property is still in preview, so until GA we need to use an older API version (2019-07-01-preview)
-    # client = get_mgmt_service_client(cmd.cli_ctx, ResourceType.MGMT_IOTHUB, api_version='2019-07-01-preview')
-    # hub = client.iot_hub_resource.get(resource_group_name, hub_name)
-    # return hub.properties.device_streams
+    # DeviceStreams property is still in preview, so until GA we need to use a preview API-version
+    client = get_mgmt_service_client(cmd.cli_ctx, ResourceType.MGMT_IOTHUB)
+    hub = client.iot_hub_resource.get(resource_group_name, hub_name)
+    return hub.properties.device_streams
 
 
 def iot_hub_manual_failover(cmd, client, hub_name, resource_group_name=None, no_wait=False):
@@ -1274,6 +1258,44 @@ def _get_iot_central_app_by_name(client, app_name):
         raise CLIError(
             "No IoT Central application found with name {} in current subscription.".format(app_name))
     return target_app
+
+
+def _process_fileupload_args(
+        default_storage_endpoint,
+        fileupload_storage_connectionstring=None,
+        fileupload_storage_container_name=None,
+        fileupload_sas_ttl=None,
+        fileupload_storage_authentication_type=None,
+        fileupload_storage_container_uri=None,
+        fileupload_storage_identity=None,
+):
+    from datetime import timedelta
+    if fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value:
+        default_storage_endpoint.authentication_type = AuthenticationType.IdentityBased
+        default_storage_endpoint.container_uri = fileupload_storage_container_uri
+    elif fileupload_storage_authentication_type is not None:
+        default_storage_endpoint.authentication_type = None
+        default_storage_endpoint.container_uri = None
+    # TODO - remove connection string and set containerURI once fileUpload SAS URL is enabled
+    if fileupload_storage_connectionstring is not None and fileupload_storage_container_name is not None:
+        default_storage_endpoint.connection_string = fileupload_storage_connectionstring
+        default_storage_endpoint.container_name = fileupload_storage_container_name
+    elif fileupload_storage_connectionstring is not None:
+        raise CLIError('Please mention storage container name.')
+    elif fileupload_storage_container_name is not None:
+        raise CLIError('Please mention storage connection string.')
+    if fileupload_sas_ttl is not None:
+        default_storage_endpoint.sas_ttl_as_iso8601 = timedelta(hours=fileupload_sas_ttl)
+
+    # If we are now (or will be) using fsa=identity AND we've set a new identity
+    if default_storage_endpoint.authentication_type == AuthenticationType.IdentityBased and fileupload_storage_identity:
+        # setup new fsi
+        default_storage_endpoint.identity = ManagedIdentity(user_assigned_identity=fileupload_storage_identity) if fileupload_storage_identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
+    # otherwise - let them know they need identity-based auth enabled
+    elif fileupload_storage_identity:
+        raise CLIError('In order to set a file upload storage identity, you must set the file upload storage authentication type (--fsa) to IdentityBased')
+
+    return default_storage_endpoint
 
 
 def _build_identity(identities):
