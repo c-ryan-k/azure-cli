@@ -462,8 +462,8 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                         properties=properties,
                                         tags=tags)
     hub_description.identity = _build_identity(identities) if identities else None
-    if identity_role and not identity_scopes:
-        raise CLIError('At least one scope required for identity role assignment')
+    if bool(identity_role) ^ bool(identity_scopes):
+        raise CLIError('At least one scope (--scopes) and one role (--role) required for system-managed identity role assignment')
 
     def identity_assignment(lro):
         try:
@@ -651,7 +651,7 @@ def iot_hub_consumer_group_delete(client, hub_name, consumer_group_name, resourc
     return client.iot_hub_resource.delete_event_hub_consumer_group(resource_group_name, hub_name, event_hub_name, consumer_group_name)
 
 
-def iot_hub_identity_assign(cmd, client, hub_name, identities, role=None, scopes=None, resource_group_name=None):
+def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=None, identity_scopes=None, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
 
     def getter():
@@ -672,16 +672,16 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, role=None, scopes
         poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
         return LongRunningOperation(cmd.cli_ctx)(poller)
 
-    if role and not scopes:
-        raise CLIError('At least one scope required for identity role assignment')
+    if bool(identity_role) ^ bool(identity_scopes):
+        raise CLIError('At least one scope (--scopes) and one role (--role) required for system-managed identity role assignment')
 
-    if role and scopes:
+    if identity_role and identity_scopes:
         from azure.cli.core.commands.arm import assign_identity
-        for scope in [scopes]:
-            hub = assign_identity(cmd.cli_ctx, getter, setter, identity_role=role, identity_scope=scope)
-        return hub
+        for scope in identity_scopes:
+            hub = assign_identity(cmd.cli_ctx, getter, setter, identity_role=identity_role, identity_scope=scope)
+        return hub.identity
     else:
-        return setter(getter())
+        return setter(getter()).identity
 
 
 def iot_hub_identity_show(cmd, client, hub_name, resource_group_name=None):
@@ -726,7 +726,9 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
        hub_identity.user_assigned_identities = None
 
     hub.identity = hub_identity
-    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+    poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+    lro = LongRunningOperation(cmd.cli_ctx)(poller)
+    return lro.identity
 
 
 def iot_hub_policy_list(client, hub_name, resource_group_name=None):
