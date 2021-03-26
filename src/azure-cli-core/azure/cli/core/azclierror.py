@@ -70,16 +70,16 @@ class AzCLIError(CLIError):
             if self.exception_trace:
                 logger.exception(self.exception_trace)
 
-            # print recommendations to action
-            if self.recommendations:
-                for recommendation in self.recommendations:
-                    print(recommendation, file=sys.stderr)
+        # print recommendations to action
+        if self.recommendations:
+            for recommendation in self.recommendations:
+                print(recommendation, file=sys.stderr)
 
-            if self.aladdin_recommendations:
-                print('\nTRY THIS:', file=sys.stderr)
-                for recommendation, description in self.aladdin_recommendations:
-                    print_styled_text(recommendation, file=sys.stderr)
-                    print_styled_text(description, file=sys.stderr)
+        if self.aladdin_recommendations:
+            print('\nTRY THIS:', file=sys.stderr)
+            for recommendation, description in self.aladdin_recommendations:
+                print_styled_text(recommendation, file=sys.stderr)
+                print_styled_text(description, file=sys.stderr)
 
     def send_telemetry(self):
         telemetry.set_error_type(self.__class__.__name__)
@@ -257,5 +257,9 @@ class CLIInternalError(ClientError):
 class RecommendationError(ClientError):
     """ The client error raised by `az next`. It is needed in `az next` to skip error records. """
     pass
+
+
+class AuthenticationError(ServiceError):
+    """ Raised when AAD authentication fails. """
 
 # endregion

@@ -5,6 +5,7 @@
 import pytest
 import os
 import time
+import unittest
 from datetime import datetime, timedelta, tzinfo
 from azure_devtools.scenario_tests import AllowLargeResponse
 from azure.cli.testsdk import (
@@ -93,14 +94,14 @@ class MySqlFlexibleServerMgmtScenarioTest(FlexibleServerMgmtScenarioTest):
     def test_mysql_flexible_server_update_scale_down(self):
         self._test_flexible_server_update_scale_down('mysql', self.resource_group, self.server)
 
-    # @AllowLargeResponse()
-    # @pytest.mark.depends(on=['MySqlFlexibleServerMgmtScenarioTest::test_mysql_flexible_server_update_scale_down'])
-    # def test_mysql_flexible_server_upadte_mmw(self):
-    #     self._test_flexible_server_upadte_mmw('mysql', self.resource_group, self.server)
+    @AllowLargeResponse()
+    @pytest.mark.depends(on=['MySqlFlexibleServerMgmtScenarioTest::test_mysql_flexible_server_update_scale_down'])
+    def test_mysql_flexible_server_update_mmw(self):
+        self._test_flexible_server_update_mmw('mysql', self.resource_group, self.server)
 
     @AllowLargeResponse()
     @pytest.mark.order(8)
-    @pytest.mark.depends(on=['MySqlFlexibleServerMgmtScenarioTest::test_mysql_flexible_server_update_scale_down'])
+    @pytest.mark.depends(on=['MySqlFlexibleServerMgmtScenarioTest::test_mysql_flexible_server_update_mmw'])
     def test_mysql_flexible_server_update_tag(self):
         self._test_flexible_server_update_tag('mysql', self.resource_group, self.server)
 
@@ -171,7 +172,7 @@ class MySqlFlexibleServerIopsMgmtScenarioTest(FlexibleServerIopsMgmtScenarioTest
 
     @AllowLargeResponse()
     @pytest.mark.order(2)
-    @pytest.mark.depends(on=['MySqlFlexibleServerIopsMgmtScenarioTest::test_mysql_flexible_server_mgmt_prepare'])
+    @pytest.mark.depends(on=['MySqlFlexibleServerIopsMgmtScenarioTest::test_mysql_flexible_server_iops_prepare'])
     def test_mysql_flexible_server_iops_create(self):
         self._test_flexible_server_iops_create('mysql', self.resource_group, self.server_1, self.server_2, self.server_3)
 
@@ -210,6 +211,7 @@ class MySqlFlexibleServerVnetServerMgmtScenarioTest(FlexibleServerVnetServerMgmt
     def test_mysql_flexible_server_vnet_server_prepare(self):
         self.cmd('az group create --location {} --name {}'.format(mysql_location, self.resource_group))
 
+    @unittest.skip("Service is temporarily busy and the operation cannot be performed. Please try again later.")
     @AllowLargeResponse()
     @pytest.mark.order(2)
     @pytest.mark.depends(on=['MySqlFlexibleServerVnetServerMgmtScenarioTest::test_mysql_flexible_server_vnet_server_prepare'])
