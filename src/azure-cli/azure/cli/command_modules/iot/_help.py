@@ -402,6 +402,9 @@ examples:
   - name: Create an IoT Hub with the standard pricing tier S1 and 4 partitions, in the 'westus' region, with tags.
     text: >
         az iot hub create --resource-group MyResourceGroup --name MyIotHub --location westus --tags a=b c=d
+  - name: Create an IoT Hub with a system-assigned identity, and assign a role and scope to a storage account for the created system identity.
+    text: >
+        az iot hub create --resource-group MyResourceGroup --name MyIotHub --location westus --assign-identity [system] --role "Storage Blob Data Contributor" --scopes {resourceId}
 """
 
 helps['iot hub delete'] = """
@@ -426,6 +429,44 @@ examples:
   - name: Get all the device streams from "MyIotHub" IoT Hub.
     text: >
         az iot hub devicestream show -n MyIotHub
+"""
+
+helps['iot hub identity'] = """
+type: group
+short-summary: Manage identities of an Azure IoT hub.
+"""
+
+helps['iot hub identity assign'] = """
+type: command
+short-summary: Assign identities to an IoT Hub
+examples:
+  - name: Assign a user-assigned identity to an IoT Hub
+    text: >
+        az iot hub identity assign --name MyIoTHub --resource-group MyResourceGroup --identities {resourceId}
+  - name: Assign a system-assigned identity to an IoT Hub and assign a role to that identity.
+    text: >
+        az iot hub identity assign --name MyIoTHub --resource-group MyResourceGroup --identities [system] --role "Storage Blob Data Contributor" --scopes {resourceId}
+"""
+
+helps['iot hub identity show'] = """
+type: command
+short-summary: Show the identity properties of an IoT Hub
+examples:
+  - name: Show identity properties of an IoT Hub
+    text: >
+        az iot hub identity show --name MyIoTHub --resource-group MyResourceGroup
+"""
+
+helps['iot hub identity remove'] = """
+type: command
+short-summary: Remove identities from an IoT Hub
+examples:
+  - name: Remove a user-assigned identity to an IoT Hub
+    text: >
+        az iot hub identity remove --name MyIoTHub --resource-group MyResourceGroup --identities {resourceId}
+  - name: Remove a system-assigned identity from an IoT Hub.
+    text: >
+        az iot hub identity remove --name MyIoTHub --resource-group MyResourceGroup --identities [system]
 """
 
 helps['iot hub list'] = """
@@ -781,7 +822,7 @@ examples:
         az iot hub update --name MyIoTHub --feedback-max-delivery-count 20 --feedback-lock-duration 100 --feedback-ttl 4
   - name: Update the IoT Hub file upload settings
     text: >
-        az iot hub update -n MyIoTHub --fileupload-sas-ttl 5 --fileupload-storage-auth-type identityBased
+        az iot hub update -n MyIoTHub --fileupload-sas-ttl 5 --fileupload-storage-auth-type identityBased --fileupload-storage-identity [system]
   - name: Update the IoT Hub file upload notification settings
     text: >
         az iot hub update -n MyIoTHub --fileupload-notification-max-delivery-count 50

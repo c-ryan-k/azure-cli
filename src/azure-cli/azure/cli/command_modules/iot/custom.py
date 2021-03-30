@@ -654,6 +654,7 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
         else:
             hub.identity.type = IdentityType.user_assigned.value if hub.identity.user_assigned_identities else IdentityType.none.value
 
+        # TODO - remove if not necessary
         hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
         poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
         return LongRunningOperation(cmd.cli_ctx)(poller)
@@ -819,8 +820,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                                     identity=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
     hub = iot_hub_get(cmd, client, hub_name, resource_group_name)
-
-    if identity and authentication_type != AuthenticationType.IDENTITY_BASED:
+    if identity and authentication_type.lower() != AuthenticationType.IdentityBased.value:
         raise CLIError("In order to use an identity for authentication, you must select --auth-type as 'identityBased'")
 
     if EndpointType.EventHub.value == endpoint_type.lower():
@@ -881,8 +881,11 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
-    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
 
+    # TODO : remove if not necessary
+    hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
+
+    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
 
 def iot_hub_routing_endpoint_list(cmd, client, hub_name, endpoint_type=None, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
