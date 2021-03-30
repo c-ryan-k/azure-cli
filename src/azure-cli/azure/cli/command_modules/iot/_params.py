@@ -180,7 +180,8 @@ def load_arguments(self, _):  # pylint: disable=too-many-statements
                         ' between 1 and 24 hours.')
         c.argument('fileupload_storage_identity',
                    options_list=['--fileupload-storage-identity', '--fsi'],
-                   help='The managed identity to use for file upload authentication.')
+                   help="The managed identity to use for file upload authentication. Use '[system]' to "
+                        "refer to the system-assigned identity or a resource ID to refer to a user-assigned identity.")
         c.argument('min_tls_version', options_list=['--min-tls-version', '--mintls'],
                    type=str, help='Specify the minimum TLS version to support for this hub. Can be set to'
                                   ' "1.2" to have clients that use a TLS version below 1.2 to be rejected.')
