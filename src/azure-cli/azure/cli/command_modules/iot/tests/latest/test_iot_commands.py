@@ -410,7 +410,8 @@ class IoTHubTest(ScenarioTest):
         private_endpoint_type = 'Microsoft.Devices/IoTHubs'
         identity_hub = self.create_random_name(prefix='identitytesthub', length=32)
         identity_based_auth = 'identityBased'
-        event_hub_identity_endpoint_name = 'EventHubIdentityEndpoint'
+        event_hub_system_identity_endpoint_name = self.create_random_name(prefix='EHSystemIdentityEndpoint', length=32)
+        event_hub_user_identity_endpoint_name = self.create_random_name(prefix='EHUserIdentityEndpoint', length=32)
 
         containerName = 'iothubcontainer'
         storageConnectionString = self._get_azurestorage_connectionstring(rg, containerName, storage_account)
@@ -431,11 +432,12 @@ class IoTHubTest(ScenarioTest):
 
         # create user-assigned identity
         with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
-            user_identity_1 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[0], rg)).get_output_in_json()
-            user_identity_2 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json()
-            user_identity_3 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()
-            # identity hub creation, assign role to storage container
-            self.cmd('iot hub create -n {0} -g {1} --sku s1 --location {2} --assign-identity {3} --role {4} --scopes {5}'
+            user_identity_1 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[0], rg)).get_output_in_json()['id']
+            user_identity_2 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json()['id']
+            user_identity_3 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()['id']
+
+        with mock.patch('azure.cli.core.commands.arm._gen_guid', side_effect=self.create_guid):
+            self.cmd('iot hub create -n {0} -g {1} --sku s1 --location {2} --mintls "1.2" --assign-identity {3} --role "{4}" --scopes "{5}"'
                      .format(identity_hub, rg, location, system_identity, identity_storage_role, storage_account_id))
 
         hub_props = self.cmd('iot hub show --name {0}'.format(identity_hub), checks=[
@@ -445,16 +447,12 @@ class IoTHubTest(ScenarioTest):
         hub_object_id = hub_props['identity']['principalId']
         assert hub_object_id
 
-        # # Add RBAC role for hub to storage container
-        # with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
-        #     role_assignment = self.cmd('az role assignment create --role "{0}" --assignee "{1}" --scope "{2}"'
-        #                                .format(identity_storage_role, hub_object_id, storage_account_id)).get_output_in_json()
-
-        # assert role_assignment['principalId'] == hub_object_id
-
-        # Allow time for RBAC
+        # Allow time for RBAC and Identity Service
         from time import sleep
-        sleep(30)
+        sleep(60)
+
+        # ensure hub is active before update
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         # Test 'az iot hub update' with Identity-based fileUpload
         updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fsi [system] --fcs {2} --fc {3} --fn true --fnt 32 --fnd 80 --rd 4 '
@@ -464,16 +462,19 @@ class IoTHubTest(ScenarioTest):
         assert storage_cs_pattern in updated_hub['properties']['storageEndpoints']['$default']['connectionString']
         # TODO - implement file upload container URI instead of connectionString once implemented in service
 
-        eh_info = self._create_eventhub_and_link_identity(rg, hub_object_id)
+        # Create EH and link identity
+        eh_info = self._create_eventhub_and_link_identity(rg, hub_object_id, [user_identity_1])
         eventhub_endpoint_uri = eh_info[0]
         entity_path = eh_info[1]
 
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
+
         # Test 'az iot hub routing-endpoint create' with Identity-based event hub endpoint
         self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --endpoint-uri {7} --entity-path {8}'
-                 .format(identity_hub, rg, event_hub_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, eventhub_endpoint_uri, entity_path),
+                 .format(identity_hub, rg, event_hub_system_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, eventhub_endpoint_uri, entity_path),
                  checks=[self.check('length(eventHubs[*])', 1),
                          self.check('eventHubs[0].resourceGroup', rg),
-                         self.check('eventHubs[0].name', event_hub_identity_endpoint_name),
+                         self.check('eventHubs[0].name', event_hub_system_identity_endpoint_name),
                          self.check('eventHubs[0].authenticationType', identity_based_auth),
                          self.check('eventHubs[0].connectionString', None),
                          self.check('eventHubs[0].endpointUri', eventhub_endpoint_uri),
@@ -481,22 +482,35 @@ class IoTHubTest(ScenarioTest):
                          self.check('length(serviceBusQueues[*])', 0),
                          self.check('length(serviceBusTopics[*])', 0),
                          self.check('length(storageContainers[*])', 0)])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         # assign individual identity to hub and test routing-endpoint with user-assigned identity
-        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, user_identity_1.id))
+        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, user_identity_1))
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --identity {7} --endpoint-uri {8} --entity-path {9}'
-                 .format(identity_hub, rg, event_hub_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, user_identity_1.id, eventhub_endpoint_uri, entity_path),
-                 checks=[self.check('length(eventHubs[*])', 1),
-                         self.check('eventHubs[0].resourceGroup', rg),
-                         self.check('eventHubs[0].name', event_hub_identity_endpoint_name),
-                         self.check('eventHubs[0].authenticationType', identity_based_auth),
-                         self.check('eventHubs[0].connectionString', None),
-                         self.check('eventHubs[0].endpointUri', eventhub_endpoint_uri),
-                         self.check('eventHubs[0].entityPath', entity_path),
+                 .format(identity_hub, rg, event_hub_user_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, user_identity_1, eventhub_endpoint_uri, entity_path),
+                 checks=[self.check('length(eventHubs[*])', 2),
+                         self.check('eventHubs[1].resourceGroup', rg),
+                         self.check('eventHubs[1].name', event_hub_user_identity_endpoint_name),
+                         self.check('eventHubs[1].authenticationType', identity_based_auth),
+                         self.check('eventHubs[1].connectionString', None),
+                         self.check('eventHubs[1].endpointUri', eventhub_endpoint_uri),
+                         self.check('eventHubs[1].entityPath', entity_path),
                          self.check('length(serviceBusQueues[*])', 0),
                          self.check('length(serviceBusTopics[*])', 0),
                          self.check('length(storageContainers[*])', 0)])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
+
+        # remove identity-based routing endpoints so we can remove user identity later
+        self.cmd('iot hub routing-endpoint delete --hub-name {0} -g {1} -n {2}'.format(identity_hub, rg, event_hub_user_identity_endpoint_name))
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
+
+        self.cmd('iot hub routing-endpoint delete --hub-name {0} -g {1} -n {2}'.format(identity_hub, rg, event_hub_system_identity_endpoint_name))
 
         vnet = 'test-iot-vnet'
         subnet = 'subnet1'
@@ -577,41 +591,47 @@ class IoTHubTest(ScenarioTest):
                  checks=[
                      self.check('length(userAssignedIdentities)', 1),
                      self.check('type', IdentityType.system_assigned_user_assigned.value),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id))])
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_1))])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active', polling_interval=10)
 
         # add multiple user-assigned identities (2, 3)
         self.cmd('iot hub identity assign -n {0} -g {1} --identities {2} {3}'
-                 .format(identity_hub, rg, user_identity_2.id, user_identity_3.id),
+                 .format(identity_hub, rg, user_identity_2, user_identity_3),
                  checks=[
                      self.check('length(userAssignedIdentities)', 3),
                      self.check('type', IdentityType.system_assigned_user_assigned.value),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id)),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_2.id)),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_3.id))])
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_1)),
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_2)),
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_3))])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         # remove single identity (system)
         self.cmd('iot hub identity remove -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity),
                  checks=[
                      self.check('length(userAssignedIdentities)', 3),
                      self.check('type', IdentityType.user_assigned.value),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_1.id)),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_2.id)),
-                     self.exists('userAssignedIdentities[{0}]'.format(user_identity_3.id))])
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_1)),
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_2)),
+                     self.exists('userAssignedIdentities."{0}"'.format(user_identity_3))])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         # remove all remaining user identities (1, 2, 3)
         self.cmd('iot hub identity remove -n {0} -g {1} --identities {2} {3} {4}'
-                 .format(identity_hub, rg, user_identity_1.id, user_identity_2.id, user_identity_3.id),
+                 .format(identity_hub, rg, user_identity_1, user_identity_2, user_identity_3),
                  checks=[
                      self.check('length(userAssignedIdentities)', 0),
                      self.check('type', IdentityType.none.value)])
+
+        self._poll_for_hub_state(hub_name=identity_hub, resource_group_name=rg, desired_state='Active')
 
         # re-add system identity
         self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity),
                  checks=[
                      self.check('length(userAssignedIdentities)', 0),
                      self.check('type', IdentityType.system_assigned.value)])
-
-        assert hub.identity.type is None
 
     def _get_eventhub_connectionstring(self, rg):
         ehNamespace = self.create_random_name(prefix='ehNamespaceiothubfortest1', length=32)
@@ -641,7 +661,7 @@ class IoTHubTest(ScenarioTest):
                           .format(rg, storage_name))
         return output.get_output_in_json()['connectionString']
 
-    def _create_eventhub_and_link_identity(self, rg, hub_object_id):
+    def _create_eventhub_and_link_identity(self, rg, hub_object_id, identities=None):
         ehNamespace = self.create_random_name(prefix='ehNamespaceiothubfortest1', length=32)
         eventHub = self.create_random_name(prefix='eventHubiothubfortest', length=32)
         role = 'Azure Event Hubs Data Sender'
@@ -653,9 +673,24 @@ class IoTHubTest(ScenarioTest):
                       .format(rg, ehNamespace, eventHub)).get_output_in_json()
         with mock.patch('azure.cli.command_modules.role.custom._gen_guid', side_effect=self.create_guid):
             self.cmd('role assignment create --role "{0}" --assignee "{1}" --scope "{2}"'.format(role, hub_object_id, eh['id']))
+            if identities:
+                for identity in identities:
+                    identity_id = self.cmd('identity show --id "{}"'.format(identity)).get_output_in_json()['principalId']
+                    self.cmd('role assignment create --role "{0}" --assignee "{1}" --scope "{2}"'.format(role, identity_id, eh['id']))
 
         # RBAC propogation
         from time import sleep
         sleep(30)
 
         return ['sb://{0}.servicebus.windows.net'.format(ehNamespace), eventHub]
+
+    # Polls and waits for hub to be in a desired state - may be temporary until we sort out LRO hub update issues
+    def _poll_for_hub_state(self, hub_name, resource_group_name, desired_state, max_retries=10, polling_interval=5):
+        from time import sleep
+        attempts = 0
+        hub_state = ''
+        while hub_state != desired_state and attempts < max_retries:
+            sleep(polling_interval)
+            hub_state = self.cmd('iot hub show --n {0} -g {1} --query="properties.state"'.format(hub_name, resource_group_name)).get_output_in_json()
+            attempts += 1
+            print('attempt {0} to check if hub {1} is in {2} state, current state: {3}'.format(attempts, hub_name, desired_state, hub_state))

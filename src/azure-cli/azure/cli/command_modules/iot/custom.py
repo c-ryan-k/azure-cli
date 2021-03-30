@@ -479,7 +479,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         except CloudError as e:
             raise e
 
-    create = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description)
+    create = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub_description, polling=True)
     if identity_role and identity_scopes:
         create.add_done_callback(identity_assignment)
     return create
@@ -572,12 +572,12 @@ def update_iot_hub_custom(instance,
 
 def iot_hub_update(client, hub_name, parameters, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
-    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, parameters, {'IF-MATCH': parameters.etag})
+    return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, parameters, {'IF-MATCH': parameters.etag}, polling=True)
 
 
 def iot_hub_delete(client, hub_name, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
-    return client.iot_hub_resource.begin_delete(resource_group_name, hub_name)
+    return client.iot_hub_resource.begin_delete(resource_group_name, hub_name, polling=True)
 
 
 # pylint: disable=inconsistent-return-statements
@@ -667,7 +667,8 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
         for scope in identity_scopes:
             hub = assign_identity(cmd.cli_ctx, getter, setter, identity_role=identity_role, identity_scope=scope)
         return hub.identity
-    return setter(getter()).identity
+    result = setter(getter())
+    return result.identity
 
 
 def iot_hub_identity_show(cmd, client, hub_name, resource_group_name=None):
@@ -886,6 +887,7 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
     hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
 
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
+
 
 def iot_hub_routing_endpoint_list(cmd, client, hub_name, endpoint_type=None, resource_group_name=None):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
