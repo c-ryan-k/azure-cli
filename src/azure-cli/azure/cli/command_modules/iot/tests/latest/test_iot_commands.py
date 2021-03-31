@@ -687,10 +687,9 @@ class IoTHubTest(ScenarioTest):
     # Polls and waits for hub to be in a desired state - may be temporary until we sort out LRO hub update issues
     def _poll_for_hub_state(self, hub_name, resource_group_name, desired_state, max_retries=10, polling_interval=5):
         from time import sleep
-        attempts = 0
-        hub_state = ''
+        attempts = 1
+        hub_state = self.cmd('iot hub show --n {0} -g {1} --query="properties.state"'.format(hub_name, resource_group_name)).get_output_in_json()
         while hub_state != desired_state and attempts < max_retries:
             sleep(polling_interval)
             hub_state = self.cmd('iot hub show --n {0} -g {1} --query="properties.state"'.format(hub_name, resource_group_name)).get_output_in_json()
             attempts += 1
-            print('attempt {0} to check if hub {1} is in {2} state, current state: {3}'.format(attempts, hub_name, desired_state, hub_state))
