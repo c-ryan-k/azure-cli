@@ -31,20 +31,9 @@ class IoTHubTest(ScenarioTest):
         ehConnectionString = self._get_eventhub_connectionstring(rg)
         subscription_id = self.get_subscription_id()
 
-        # Test hub life cycle in free tier
+        # Test 'az iot hub create'
         self.cmd('iot hub create -n {0} -g {1} --sku F1'.format(hub, rg), expect_failure=True)
         self.cmd('iot hub create -n {0} -g {1} --sku F1 --partition-count 4'.format(hub, rg), expect_failure=True)
-        self.cmd('iot hub create -n {0} -g {1} --sku F1 --partition-count 2 --tags a=b c=d'.format(hub, rg),
-                 checks=[self.check('resourcegroup', rg),
-                         self.check('name', hub),
-                         self.check('sku.name', 'F1'),
-                         self.check('properties.minTlsVersion', None),
-                         self.check('properties.eventHubEndpoints.events.partitionCount', '2'),
-                         self.check('length(tags)', 2),
-                         self.check('tags', {'a': 'b', 'c': 'd'})])
-        self.cmd('iot hub delete -n {0}'.format(hub), checks=self.is_empty())
-
-        # Test 'az iot hub create'
         self.cmd('iot hub create -n {0} -g {1} --sku S1 --fn true'.format(hub, rg), expect_failure=True)
         self.cmd('iot hub create -n {0} -g {1} --sku S1 --fn true --fc containerName'
                  .format(hub, rg), expect_failure=True)
