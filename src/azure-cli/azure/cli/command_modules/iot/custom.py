@@ -22,6 +22,8 @@ from azure.mgmt.iothub.models import (IotHubSku,
                                       SharedAccessSignatureAuthorizationRule,
                                       IotHubProperties,
                                       EventHubProperties,
+                                      EventHubConsumerGroupBodyDescription,
+                                      EventHubConsumerGroupName,
                                       FailoverInput,
                                       FeedbackProperties,
                                       ManagedIdentity,
@@ -618,7 +620,8 @@ def iot_hub_sku_list(client, hub_name, resource_group_name=None):
 
 def iot_hub_consumer_group_create(client, hub_name, consumer_group_name, resource_group_name=None, event_hub_name='events'):
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
-    return client.iot_hub_resource.create_event_hub_consumer_group(resource_group_name, hub_name, event_hub_name, consumer_group_name)
+    consumer_group_body = EventHubConsumerGroupBodyDescription(properties=EventHubConsumerGroupName(name=consumer_group_name))
+    return client.iot_hub_resource.create_event_hub_consumer_group(resource_group_name, hub_name, event_hub_name, consumer_group_name, consumer_group_body=consumer_group_body)
 
 
 def iot_hub_consumer_group_list(client, hub_name, resource_group_name=None, event_hub_name='events'):
