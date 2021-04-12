@@ -566,9 +566,6 @@ def update_iot_hub_custom(instance,
 
     instance.properties.storage_endpoints['$default'] = default_storage_endpoint
 
-    # TODO - ensure this is necessary
-    if not instance.identity.user_assigned_identities:
-        instance.identity.user_assigned_identities = None
     return instance
 
 
@@ -647,8 +644,11 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
 
     def setter(hub):
         user_identities = [i for i in identities if i != SYSTEM_IDENTITY]
+
+        if user_identities and not hub.identity.user_assigned_identities:
+            hub.identity.user_assigned_identities = {}
         for identity in user_identities:
-            hub.identity.user_assigned_identities[identity] = hub.identity.user_assigned_identities.get(identity, {})
+            hub.identity.user_assigned_identities[identity] = hub.identity.user_assigned_identities.get(identity, {}) if hub.identity.user_assigned_identities else {}
 
         has_system_identity = hub.identity.type in [IdentityType.system_assigned_user_assigned.value, IdentityType.system_assigned.value]
 
@@ -657,8 +657,6 @@ def iot_hub_identity_assign(cmd, client, hub_name, identities, identity_role=Non
         else:
             hub.identity.type = IdentityType.user_assigned.value if hub.identity.user_assigned_identities else IdentityType.none.value
 
-        # TODO - remove if not necessary
-        hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
         poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
         return LongRunningOperation(cmd.cli_ctx)(poller)
 
@@ -710,10 +708,6 @@ def iot_hub_identity_remove(cmd, client, hub_name, identities, resource_group_na
         hub_identity.type = IdentityType.system_assigned_user_assigned.value if hub_identity.user_assigned_identities else IdentityType.system_assigned.value
     else:
         hub_identity.type = IdentityType.user_assigned.value if hub_identity.user_assigned_identities else IdentityType.none.value
-
-    # TODO - ensure this is necessary
-    if hub_identity.type == IdentityType.system_assigned.value:
-        hub_identity.user_assigned_identities = None
 
     hub.identity = hub_identity
     poller = client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
@@ -885,9 +879,6 @@ def iot_hub_routing_endpoint_create(cmd, client, hub_name, endpoint_name, endpoi
                 identity=ManagedIdentity(user_assigned_identity=identity) if identity not in [IdentityType.none.value, SYSTEM_IDENTITY] else None
             )
         )
-
-    # TODO : remove if not necessary
-    hub.identity.user_assigned_identities = hub.identity.user_assigned_identities or None
 
     return client.iot_hub_resource.begin_create_or_update(resource_group_name, hub_name, hub, {'IF-MATCH': hub.etag})
 
@@ -1320,6 +1311,4 @@ def _build_identity(identities):
     identity = ArmIdentity(type=identity_type)
     if user_identities:
         identity.user_assigned_identities = {i: {} for i in user_identities}
-    # else:
-    #     identity.user_assigned_identities = None
     return identity

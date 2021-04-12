@@ -596,13 +596,13 @@ class IoTHubTest(ScenarioTest):
         self.cmd('iot hub identity remove -n {0} -g {1} --identities {2} {3} {4}'
                  .format(identity_hub, rg, user_identity_1, user_identity_2, user_identity_3),
                  checks=[
-                     self.check('length(userAssignedIdentities)', 0),
+                     self.check('userAssignedIdentities', None),
                      self.check('type', IdentityType.none.value)])
 
         # re-add system identity
         self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, system_identity),
                  checks=[
-                     self.check('length(userAssignedIdentities)', 0),
+                     self.check('userAssignedIdentities', None),
                      self.check('type', IdentityType.system_assigned.value)])
 
     def _get_eventhub_connectionstring(self, rg):
