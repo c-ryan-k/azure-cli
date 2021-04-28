@@ -1054,7 +1054,7 @@ def iot_hub_devicestream_show(cmd, client, hub_name, resource_group_name=None):
     from azure.cli.core.commands.client_factory import get_mgmt_service_client, ResourceType
     resource_group_name = _ensure_resource_group_name(client, resource_group_name, hub_name)
     # DeviceStreams property is still in preview, so until GA we need to use a preview API-version
-    client = get_mgmt_service_client(cmd.cli_ctx, ResourceType.MGMT_IOTHUB)
+    client = get_mgmt_service_client(cmd.cli_ctx, ResourceType.MGMT_IOTHUB, api_version='2019-07-01-preview')
     hub = client.iot_hub_resource.get(resource_group_name, hub_name)
     return hub.properties.device_streams
 
