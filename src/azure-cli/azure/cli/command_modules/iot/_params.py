@@ -181,23 +181,23 @@ def load_arguments(self, _):  # pylint: disable=too-many-statements
         c.argument('fileupload_storage_identity',
                    options_list=['--fileupload-storage-identity', '--fsi'],
                    help="The managed identity to use for file upload authentication. Use '[system]' to "
-                        "refer to the system-assigned identity or a resource ID to refer to a user-assigned identity.")
+                        "refer to the system-assigned managed identity or a resource ID to refer to a user-assigned managed identity.")
         c.argument('min_tls_version', options_list=['--min-tls-version', '--mintls'],
                    type=str, help='Specify the minimum TLS version to support for this hub. Can be set to'
                                   ' "1.2" to have clients that use a TLS version below 1.2 to be rejected.')
         c.argument('tags', tags_type)
         c.argument('identities', options_list=['--assign-identity'],
-                   nargs='*', help="Accepts system or user assigned identities separated by spaces. Use '[system]'"
+                   nargs='*', help="Accepts system or user-assigned managed identities separated by spaces. Use '[system]'"
                    " to refer to the system-assigned identity or a resource ID to refer to a user-assigned identity.")
         c.argument('identity_role', options_list=['--role'],
-                   help="Role to assign to the hub's system-assigned identity")
+                   help="Role to assign to the hub's system-assigned managed identity")
         c.argument('identity_scopes', options_list=['--scopes'], nargs='*',
                    help="Space separated list of scopes to assign the role (--role) "
                    "for the system-assigned managed identity.")
 
     with self.argument_context('iot hub identity') as c:
         c.argument('identities', options_list=['--identities'],
-                   nargs='*', help="Accepts system or user assigned identities separated by spaces. Use '[system]'"
+                   nargs='*', help="Accepts system or user-assigned managed identities separated by spaces. Use '[system]'"
                    " to refer to the system-assigned identity or a resource ID to refer to a user-assigned identity.")
 
     for subgroup in ['consumer-group', 'policy', 'certificate', 'routing-endpoint', 'route']:

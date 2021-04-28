@@ -465,7 +465,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                         tags=tags)
     hub_description.identity = _build_identity(identities) if identities else None
     if bool(identity_role) ^ bool(identity_scopes):
-        raise CLIError('At least one scope (--scopes) and one role (--role) required for system-managed identity role assignment')
+        raise CLIError('At least one scope (--scopes) and one role (--role) required for system-assigned managed identity role assignment')
 
     def identity_assignment(lro):
         try:
