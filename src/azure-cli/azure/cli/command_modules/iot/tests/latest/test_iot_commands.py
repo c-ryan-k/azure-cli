@@ -427,13 +427,14 @@ class IoTHubTest(ScenarioTest):
             user_identity_2 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[1], rg)).get_output_in_json()['id']
             user_identity_3 = self.cmd('identity create -n {0} -g {1}'.format(user_identity_names[2], rg)).get_output_in_json()['id']
 
+        # create hub with system-assigned identity, user-assigned identity, and assign storage roles
         with mock.patch('azure.cli.core.commands.arm._gen_guid', side_effect=self.create_guid):
-            self.cmd('iot hub create -n {0} -g {1} --sku s1 --location {2} --mintls "1.2" --assign-identity {3} --role "{4}" --scopes "{5}"'
-                     .format(identity_hub, rg, location, system_identity, identity_storage_role, storage_account_id))
+            self.cmd('iot hub create -n {0} -g {1} --sku s1 --location {2} --mintls "1.2" --assign-identity {3} {4} --role "{5}" --scopes "{6}"'
+                     .format(identity_hub, rg, location, system_identity, user_identity_1, identity_storage_role, storage_account_id))
 
         hub_props = self.cmd('iot hub show --name {0}'.format(identity_hub), checks=[
             self.check('properties.minTlsVersion', '1.2'),
-            self.check('identity.type', 'SystemAssigned')]).get_output_in_json()
+            self.check('identity.type', 'SystemAssigned, UserAssigned')]).get_output_in_json()
 
         hub_object_id = hub_props['identity']['principalId']
         assert hub_object_id
@@ -454,7 +455,7 @@ class IoTHubTest(ScenarioTest):
         eventhub_endpoint_uri = eh_info[0]
         entity_path = eh_info[1]
 
-        # Test 'az iot hub routing-endpoint create' with Identity-based event hub endpoint
+        # Test 'az iot hub routing-endpoint create' with system-assigned identity and event hub endpoint
         self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --endpoint-uri {7} --entity-path {8}'
                  .format(identity_hub, rg, event_hub_system_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, eventhub_endpoint_uri, entity_path),
                  checks=[self.check('length(eventHubs[*])', 1),
@@ -468,9 +469,7 @@ class IoTHubTest(ScenarioTest):
                          self.check('length(serviceBusTopics[*])', 0),
                          self.check('length(storageContainers[*])', 0)])
 
-        # assign individual identity to hub and test routing-endpoint with user-assigned identity
-        self.cmd('iot hub identity assign -n {0} -g {1} --identities {2}'.format(identity_hub, rg, user_identity_1))
-
+        # Test routing-endpoint create with user-assigned identity and event hub endpoint
         self.cmd('iot hub routing-endpoint create --hub-name {0} -g {1} -n {2} -t {3} -r {4} -s {5} --auth-type {6} --identity {7} --endpoint-uri {8} --entity-path {9}'
                  .format(identity_hub, rg, event_hub_user_identity_endpoint_name, endpoint_type, rg, subscription_id, identity_based_auth, user_identity_1, eventhub_endpoint_uri, entity_path),
                  checks=[self.check('length(eventHubs[*])', 2),
