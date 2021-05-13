@@ -33,6 +33,7 @@ class RouteSourceType(Enum):
     DeviceLifecycleEvents = 'devicelifecycleevents'
     DeviceJobLifecycleEvents = 'devicejoblifecycleevents'
     DigitalTwinChangeEvents = 'digitaltwinchangeevents'
+    DeviceConnectionStateEvents = 'deviceconnectionstateevents'
 
 
 # pylint: disable=too-few-public-methods
