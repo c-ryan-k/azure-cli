@@ -8,6 +8,7 @@ import mock
 
 from azure.cli.testsdk import ResourceGroupPreparer, ScenarioTest, StorageAccountPreparer
 from azure_devtools.scenario_tests import AllowLargeResponse
+from azure.mgmt.iothub.models import RoutingSource
 from azure.cli.command_modules.iot.shared import IdentityType
 from .recording_processors import KeyReplacer
 
@@ -327,14 +328,16 @@ class IoTHubTest(ScenarioTest):
                          self.check('routes[0].properties.endpointNames[0]', endpoint_name)])
 
         # Test 'az iot hub route update'
-        self.cmd('iot hub route update --hub-name {0} -g {1} -n {2} -s {3}'.format(hub, rg, route_name, new_source_type),
-                 checks=[self.check('length([*])', 1),
-                         self.check('[0].name', route_name),
-                         self.check('[0].source', new_source_type),
-                         self.check('[0].isEnabled', enabled),
-                         self.check('[0].condition', condition),
-                         self.check('length([0].endpointNames[*])', 1),
-                         self.check('[0].endpointNames[0]', endpoint_name)])
+        routing_sources = [source.value for source in RoutingSource if source != RoutingSource.Invalid]
+        for new_source_type in routing_sources:
+            self.cmd('iot hub route update --hub-name {0} -g {1} -n {2} -s {3}'.format(hub, rg, route_name, new_source_type),
+                     checks=[self.check('length([*])', 1),
+                             self.check('[0].name', route_name),
+                             self.check('[0].source', new_source_type),
+                             self.check('[0].isEnabled', enabled),
+                             self.check('[0].condition', condition),
+                             self.check('length([0].endpointNames[*])', 1),
+                             self.check('[0].endpointNames[0]', endpoint_name)])
 
         # Test 'az iot hub route delete'
         self.cmd('iot hub route delete --hub-name {0} -g {1}'.format(hub, rg), checks=[
