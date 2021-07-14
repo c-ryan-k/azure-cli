@@ -425,7 +425,6 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                    fileupload_storage_container_name=None,
                    fileupload_sas_ttl=1,
                    fileupload_storage_authentication_type=None,
-                   fileupload_storage_container_uri=None,
                    fileupload_storage_identity=None,
                    min_tls_version=None,
                    tags=None,
@@ -443,10 +442,6 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
     if fileupload_storage_container_name and not fileupload_storage_connectionstring:
         raise RequiredArgumentMissingError('Please mention storage connection string.')
     identity_based_file_upload = fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value
-    if not identity_based_file_upload and not fileupload_storage_connectionstring and fileupload_storage_container_name:
-        raise RequiredArgumentMissingError('Key-based authentication requires a connection string.')
-    if identity_based_file_upload and not fileupload_storage_container_uri:
-        raise RequiredArgumentMissingError('Identity-based authentication requires a storage container uri (--fileupload-storage-container-uri, --fcu).')
     if not identity_based_file_upload and fileupload_storage_identity:
         raise RequiredArgumentMissingError('In order to set a fileupload storage identity, please set file upload storage authentication (--fsa) to IdentityBased')
 
@@ -471,7 +466,6 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
         connection_string=fileupload_storage_connectionstring if fileupload_storage_connectionstring else '',
         container_name=fileupload_storage_container_name if fileupload_storage_container_name else '',
         authentication_type=fileupload_storage_authentication_type if fileupload_storage_authentication_type else None,
-        container_uri=fileupload_storage_container_uri if fileupload_storage_container_uri else '',
         identity=ManagedIdentity(user_assigned_identity=fileupload_storage_identity) if fileupload_storage_identity else None)
 
     properties = IotHubProperties(event_hub_endpoints=event_hub_dic,
@@ -551,7 +545,6 @@ def update_iot_hub_custom(instance,
                           fileupload_storage_container_name=None,
                           fileupload_sas_ttl=None,
                           fileupload_storage_authentication_type=None,
-                          fileupload_storage_container_uri=None,
                           fileupload_storage_identity=None,
                           tags=None):
     from datetime import timedelta
@@ -589,7 +582,6 @@ def update_iot_hub_custom(instance,
         fileupload_storage_container_name,
         fileupload_sas_ttl,
         fileupload_storage_authentication_type,
-        fileupload_storage_container_uri,
         fileupload_storage_identity,
     )
 
@@ -1314,16 +1306,13 @@ def _process_fileupload_args(
         fileupload_storage_container_name=None,
         fileupload_sas_ttl=None,
         fileupload_storage_authentication_type=None,
-        fileupload_storage_container_uri=None,
         fileupload_storage_identity=None,
 ):
     from datetime import timedelta
     if fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value:
         default_storage_endpoint.authentication_type = AuthenticationType.IdentityBased
-        default_storage_endpoint.container_uri = fileupload_storage_container_uri
     elif fileupload_storage_authentication_type is not None:
         default_storage_endpoint.authentication_type = None
-        default_storage_endpoint.container_uri = None
     # TODO - remove connection string and set containerURI once fileUpload SAS URL is enabled
     if fileupload_storage_connectionstring is not None and fileupload_storage_container_name is not None:
         default_storage_endpoint.connection_string = fileupload_storage_connectionstring
