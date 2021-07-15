@@ -96,6 +96,12 @@ class IoTHubTest(ScenarioTest):
         assert updated_hub['properties']['storageEndpoints']['$default']['sasTtlAsIso8601'] == '3:00:00'
         assert updated_hub['tags'] == {'e': 'f', 'g': 'h'}
 
+        # Test fileupload authentication type settings
+        # No identity, setting identity-based file upload or managed identity for file upload should fail
+        self.cmd('iot hub update -n {0} -g {1} --fsa identityBased'.format(hub, rg), expect_failure=True)
+        self.cmd('iot hub update -n {0} -g {1} --fsi [system]'.format(hub, rg), expect_failure=True)
+        self.cmd('iot hub update -n {0} -g {1} --fsi test/user/'.format(hub, rg), expect_failure=True)
+
         # Test 'az iot hub show'
         self.cmd('iot hub show -n {0}'.format(hub), checks=[
             self.check('resourcegroup', rg),
@@ -450,7 +456,17 @@ class IoTHubTest(ScenarioTest):
                                .format(identity_hub, identity_based_auth, storageConnectionString, containerName)).get_output_in_json()
         assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
         assert storage_cs_pattern in updated_hub['properties']['storageEndpoints']['$default']['connectionString']
-        # TODO - implement file upload container URI instead of connectionString once implemented in service
+        # Test fileupload authentication type settings
+        # Setting key-based file upload (identity based commands should fail)
+        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsa keyBased'.format(identity_hub, rg)).get_output_in_json()
+        assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == 'keyBased'
+        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsi test/user/'.format(identity_hub, rg), expect_failure=True)
+        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsi [system]'.format(identity_hub, rg), expect_failure=True)
+
+        # Setting identity-based file upload and changing to user identity
+        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsa {2} --fsi {3}'.format(identity_hub, rg, identity_based_auth, user_identity_1)).get_output_in_json()
+        assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
+        assert updated_hub['properties']['storageEndpoints']['$default']['identity'] == user_identity_1
 
         # Create EH and link identity
         eh_info = self._create_eventhub_and_link_identity(rg, hub_object_id, [user_identity_1])

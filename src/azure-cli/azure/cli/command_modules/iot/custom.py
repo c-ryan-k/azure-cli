@@ -444,7 +444,11 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
     identity_based_file_upload = fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value
     if not identity_based_file_upload and fileupload_storage_identity:
         raise RequiredArgumentMissingError('In order to set a fileupload storage identity, please set file upload storage authentication (--fsa) to IdentityBased')
-
+    if identity_based_file_upload or fileupload_storage_identity:
+        if fileupload_storage_identity == SYSTEM_ASSIGNED_IDENTITY and not system_identity:
+            raise ArgumentUsageError('System managed identity [--mi-system-assigned] must be enabled in order to use managed identity for file upload')
+        elif fileupload_storage_identity and fileupload_storage_identity != SYSTEM_ASSIGNED_IDENTITY and not user_identities:
+            raise ArgumentUsageError('User identity [--mi-user-assigned] must be added in order to use it for file upload')
     location = _ensure_location(cli_ctx, resource_group_name, location)
     sku = IotHubSkuInfo(name=sku, capacity=unit)
 
@@ -575,6 +579,25 @@ def update_iot_hub_custom(instance,
     if fileupload_notification_ttl is not None:
         ttl = timedelta(hours=fileupload_notification_ttl)
         instance.properties.messaging_endpoints['fileNotifications'].ttl_as_iso8601 = ttl
+    # if setting a fileupload storage identity or changing fileupload to identity-based
+    if fileupload_storage_identity or (fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value):
+        instance_identity = _get_hub_identity_type(instance)
+
+        # if hub has no identity
+        if not instance_identity or instance_identity == IdentityType.none.value:
+            raise ArgumentUsageError('Hub has no identity assigned, please assign a system or user-assigned managed identity to use for file-upload with `az iot hub identity assign`')
+
+        has_system_identity = instance_identity in [IdentityType.system_assigned.value, IdentityType.system_assigned_user_assigned.value]
+        has_user_identity = instance_identity in [IdentityType.user_assigned.value, IdentityType.system_assigned_user_assigned.value]
+
+        # if changing storage identity to '[system]'
+        if fileupload_storage_identity == SYSTEM_ASSIGNED_IDENTITY:
+            if not has_system_identity:
+                raise ArgumentUsageError('System managed identity must be enabled in order to use managed identity for file upload')
+        # if changing to user identity and hub has no user identities
+        elif fileupload_storage_identity and not has_user_identity:
+            raise ArgumentUsageError('User identity {} must be added to hub in order to use it for file upload'.format(fileupload_storage_identity))
+
 
     default_storage_endpoint = _process_fileupload_args(
         instance.properties.storage_endpoints['$default'],
@@ -1311,6 +1334,8 @@ def _process_fileupload_args(
     from datetime import timedelta
     if fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.IdentityBased.value:
         default_storage_endpoint.authentication_type = AuthenticationType.IdentityBased
+    elif fileupload_storage_authentication_type and fileupload_storage_authentication_type.lower() == AuthenticationType.KeyBased.value:
+        default_storage_endpoint.authentication_type = AuthenticationType.KeyBased.value
     elif fileupload_storage_authentication_type is not None:
         default_storage_endpoint.authentication_type = None
     # TODO - remove connection string and set containerURI once fileUpload SAS URL is enabled
@@ -1337,6 +1362,9 @@ def _process_fileupload_args(
 
     return default_storage_endpoint
 
+def  _get_hub_identity_type(instance):
+    identity = getattr(instance, 'identity', {})
+    return getattr(identity, 'type', None)
 
 def _build_identity(system=False, identities=None):
     identity_type = IdentityType.none.value
