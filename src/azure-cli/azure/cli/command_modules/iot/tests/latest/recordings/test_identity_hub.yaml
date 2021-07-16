@@ -2838,7 +2838,7 @@ interactions:
       cache-control:
       - no-cache
       content-length:
-      - '570'
+      - '569'
       content-type:
       - application/json; charset=utf-8
       date:
@@ -3521,7 +3521,7 @@ interactions:
       {"retentionTimeInDays": 1, "partitionCount": 4}}, "routing": {"endpoints": {"serviceBusQueues":
       [], "serviceBusTopics": [], "eventHubs": [{"endpointUri": "sb://ehNamespaceiothubfortest1000009.servicebus.windows.net",
       "entityPath": "eventHubiothubfortest000010", "authenticationType": "identitybased",
-      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "a386d5ea-ea90-441a-8263-d816368c84a1",
+      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "0b1f6471-1bf0-4dda-aec3-cb9272f09590",
       "resourceGroup": "clitest.rg000001"}], "storageContainers": []}, "routes": [],
       "fallbackRoute": {"name": "$fallback", "source": "DeviceMessages", "condition":
       "true", "endpointNames": ["events"], "isEnabled": true}}, "storageEndpoints":
@@ -3876,11 +3876,11 @@ interactions:
       [], "serviceBusTopics": [], "eventHubs": [{"id": "0d1bd0f0-eed4-40e4-82e4-58b555adfc85",
       "endpointUri": "sb://ehNamespaceiothubfortest1000009.servicebus.windows.net",
       "entityPath": "eventHubiothubfortest000010", "authenticationType": "identityBased",
-      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "a386d5ea-ea90-441a-8263-d816368c84a1",
+      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "0b1f6471-1bf0-4dda-aec3-cb9272f09590",
       "resourceGroup": "clitest.rg000001"}, {"endpointUri": "sb://ehNamespaceiothubfortest1000009.servicebus.windows.net",
       "entityPath": "eventHubiothubfortest000010", "authenticationType": "identitybased",
       "identity": {"userAssignedIdentity": "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/clitest.rg000001/providers/Microsoft.ManagedIdentity/userAssignedIdentities/iot-user-identity000006"},
-      "name": "EHUserIdentityEndpoint000005", "subscriptionId": "a386d5ea-ea90-441a-8263-d816368c84a1",
+      "name": "EHUserIdentityEndpoint000005", "subscriptionId": "0b1f6471-1bf0-4dda-aec3-cb9272f09590",
       "resourceGroup": "clitest.rg000001"}], "storageContainers": []}, "routes": [],
       "fallbackRoute": {"name": "$fallback", "source": "DeviceMessages", "condition":
       "true", "endpointNames": ["events"], "isEnabled": true}}, "storageEndpoints":
@@ -4189,7 +4189,7 @@ interactions:
       [], "serviceBusTopics": [], "eventHubs": [{"id": "0d1bd0f0-eed4-40e4-82e4-58b555adfc85",
       "endpointUri": "sb://ehNamespaceiothubfortest1000009.servicebus.windows.net",
       "entityPath": "eventHubiothubfortest000010", "authenticationType": "identityBased",
-      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "a386d5ea-ea90-441a-8263-d816368c84a1",
+      "name": "EHSystemIdentityEndpoint000004", "subscriptionId": "0b1f6471-1bf0-4dda-aec3-cb9272f09590",
       "resourceGroup": "clitest.rg000001"}], "storageContainers": []}, "routes": [],
       "fallbackRoute": {"name": "$fallback", "source": "DeviceMessages", "condition":
       "true", "endpointNames": ["events"], "isEnabled": true}}, "storageEndpoints":

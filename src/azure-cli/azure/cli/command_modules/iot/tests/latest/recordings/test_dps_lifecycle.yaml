@@ -70,7 +70,7 @@ interactions:
     uri: https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/IotHubs/iot000003?api-version=2021-03-31
   response:
     body:
-      string: '{"id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/IotHubs/iot000003","name":"iot000003","type":"Microsoft.Devices/IotHubs","location":"westus","tags":{},"subscriptionid":"a386d5ea-ea90-441a-8263-d816368c84a1","resourcegroup":"clitest.rg000001","properties":{"state":"Activating","provisioningState":"Accepted","eventHubEndpoints":{"events":{"retentionTimeInDays":1,"partitionCount":4},"operationsMonitoringEvents":{"retentionTimeInDays":1,"partitionCount":4}},"storageEndpoints":{"$default":{"sasTtlAsIso8601":"PT1H","connectionString":"","containerName":""}},"messagingEndpoints":{"fileNotifications":{"lockDurationAsIso8601":"PT1M","ttlAsIso8601":"PT1H","maxDeliveryCount":10}},"enableFileUploadNotifications":false,"cloudToDevice":{"maxDeliveryCount":10,"defaultTtlAsIso8601":"PT1H","feedback":{"lockDurationAsIso8601":"PT5S","ttlAsIso8601":"PT1H","maxDeliveryCount":10}},"features":"None"},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
+      string: '{"id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/IotHubs/iot000003","name":"iot000003","type":"Microsoft.Devices/IotHubs","location":"westus","tags":{},"subscriptionid":"0b1f6471-1bf0-4dda-aec3-cb9272f09590","resourcegroup":"clitest.rg000001","properties":{"state":"Activating","provisioningState":"Accepted","eventHubEndpoints":{"events":{"retentionTimeInDays":1,"partitionCount":4},"operationsMonitoringEvents":{"retentionTimeInDays":1,"partitionCount":4}},"storageEndpoints":{"$default":{"sasTtlAsIso8601":"PT1H","connectionString":"","containerName":""}},"messagingEndpoints":{"fileNotifications":{"lockDurationAsIso8601":"PT1M","ttlAsIso8601":"PT1H","maxDeliveryCount":10}},"enableFileUploadNotifications":false,"cloudToDevice":{"maxDeliveryCount":10,"defaultTtlAsIso8601":"PT1H","feedback":{"lockDurationAsIso8601":"PT5S","ttlAsIso8601":"PT1H","maxDeliveryCount":10}},"features":"None"},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
     headers:
       azure-asyncoperation:
       - https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Devices/operationResults/b3NfaWhfM2UyZGZmOGUtMTljMS00ZGNjLWI3ZDQtN2FiZGU5NGJiNzg4?api-version=2021-03-31&operationSource=os_ih&asyncinfo
@@ -379,7 +379,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1199'
+      - '1197'
     status:
       code: 200
       message: OK
@@ -452,7 +452,7 @@ interactions:
     uri: https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002?api-version=2020-03-01
   response:
     body:
-      string: '{"name":"dps000002","location":"westus","properties":{"state":"Activating","provisioningState":"Accepted","allocationPolicy":"Hashed","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"a386d5ea-ea90-441a-8263-d816368c84a1","tags":{"key1":"value1","key2":"value2"},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
+      string: '{"name":"dps000002","location":"westus","properties":{"state":"Activating","provisioningState":"Accepted","allocationPolicy":"Hashed","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"0b1f6471-1bf0-4dda-aec3-cb9272f09590","tags":{"key1":"value1","key2":"value2"},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
     headers:
       azure-asyncoperation:
       - https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002/operationResults/b3NfaWRfNDZhMWZmYTYtZTlkYy00NDk1LTlmODQtYWNiNmU4ZTJmOWM2?api-version=2020-03-01&asyncinfo
@@ -1778,7 +1778,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1199'
+      - '1197'
     status:
       code: 200
       message: OK
@@ -2083,7 +2083,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1198'
+      - '1197'
     status:
       code: 200
       message: OK
@@ -2293,7 +2293,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-resource-requests:
-      - '4999'
+      - '4998'
     status:
       code: 201
       message: Created
@@ -2980,7 +2980,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1199'
+      - '1195'
     status:
       code: 200
       message: OK
@@ -3278,7 +3278,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1199'
+      - '1198'
     status:
       code: 200
       message: OK
@@ -3501,7 +3501,7 @@ interactions:
       x-content-type-options:
       - nosniff
       x-ms-ratelimit-remaining-subscription-writes:
-      - '1199'
+      - '1195'
     status:
       code: 200
       message: OK
@@ -4117,7 +4117,7 @@ interactions:
     uri: https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002?api-version=2020-03-01
   response:
     body:
-      string: '{"name":"dps000002","location":"westus","properties":{"state":"Transitioning","provisioningState":"Accepted","iotHubs":[{"applyAllocationPolicy":true,"allocationWeight":10,"name":"iot000003.azure-devices.net","connectionString":"HostName=iot000003.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=****","location":"westus"}],"allocationPolicy":"GeoLatency","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"a386d5ea-ea90-441a-8263-d816368c84a1","tags":{},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
+      string: '{"name":"dps000002","location":"westus","properties":{"state":"Transitioning","provisioningState":"Accepted","iotHubs":[{"applyAllocationPolicy":true,"allocationWeight":10,"name":"iot000003.azure-devices.net","connectionString":"HostName=iot000003.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=****","location":"westus"}],"allocationPolicy":"GeoLatency","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"0b1f6471-1bf0-4dda-aec3-cb9272f09590","tags":{},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
     headers:
       azure-asyncoperation:
       - https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002/operationResults/b3NfaWRfOTkyNjY2MGYtODQyNC00NjVhLWJiYTItYmU0OTY1MzEwNTZk?api-version=2020-03-01&asyncinfo
@@ -4461,7 +4461,7 @@ interactions:
     uri: https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002?api-version=2020-03-01
   response:
     body:
-      string: '{"name":"dps000002","location":"westus","properties":{"state":"Transitioning","provisioningState":"Accepted","iotHubs":[],"allocationPolicy":"GeoLatency","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"a386d5ea-ea90-441a-8263-d816368c84a1","tags":{},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
+      string: '{"name":"dps000002","location":"westus","properties":{"state":"Transitioning","provisioningState":"Accepted","iotHubs":[],"allocationPolicy":"GeoLatency","idScope":null},"resourcegroup":"clitest.rg000001","type":"Microsoft.Devices/provisioningServices","id":"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002","subscriptionid":"0b1f6471-1bf0-4dda-aec3-cb9272f09590","tags":{},"sku":{"name":"S1","tier":"Standard","capacity":1}}'
     headers:
       azure-asyncoperation:
       - https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/clitest.rg000001/providers/Microsoft.Devices/provisioningServices/dps000002/operationResults/b3NfaWRfMTQyYWM5NGYtMjI4YS00NjAzLWFjMzUtMTcwYmYzOTZiMTQx?api-version=2020-03-01&asyncinfo
