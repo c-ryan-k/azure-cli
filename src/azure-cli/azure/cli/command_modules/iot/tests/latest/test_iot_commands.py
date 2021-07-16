@@ -42,7 +42,7 @@ class IoTHubTest(ScenarioTest):
         self.cmd('iot hub create -n {0} -g {1} --retention-day 3'
                  ' --c2d-ttl 23 --c2d-max-delivery-count 89 --feedback-ttl 29 --feedback-lock-duration 35'
                  ' --feedback-max-delivery-count 40 --fileupload-notification-max-delivery-count 79'
-                 ' --fileupload-notification-ttl 20 --min-tls-version 1.2'.format(hub, rg),
+                 ' --fileupload-notification-ttl 20 --min-tls-version 1.2 --fuld 15'.format(hub, rg),
                  checks=[self.check('resourcegroup', rg),
                          self.check('location', location),
                          self.check('name', hub),
@@ -56,6 +56,7 @@ class IoTHubTest(ScenarioTest):
                          self.check('properties.cloudToDevice.defaultTtlAsIso8601', '23:00:00'),
                          self.check('properties.messagingEndpoints.fileNotifications.ttlAsIso8601', '20:00:00'),
                          self.check('properties.messagingEndpoints.fileNotifications.maxDeliveryCount', '79'),
+                         self.check('properties.messagingEndpoints.fileNotifications.lockDurationAsIso8601', '0:00:15'),
                          self.check('properties.minTlsVersion', '1.2')])
 
         # Test 'az iot hub show-connection-string'
@@ -468,7 +469,7 @@ class IoTHubTest(ScenarioTest):
 
         # Test 'az iot hub update' with Identity-based fileUpload
         updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fsi [system] --fcs {2} --fc {3} --fn true --fnt 32 --fnd 80 --rd 4 '
-                               '--ct 34 --cdd 46 --ft 43 --fld 10 --fd 76'
+                               '--ct 34 --cdd 46 --ft 43 --fld 10 --f --fd 76'
                                .format(identity_hub, identity_based_auth, storageConnectionString, containerName)).get_output_in_json()
         assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
         assert storage_cs_pattern in updated_hub['properties']['storageEndpoints']['$default']['connectionString']

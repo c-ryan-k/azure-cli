@@ -408,6 +408,7 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                    feedback_ttl=1,
                    feedback_max_delivery_count=10,
                    enable_fileupload_notifications=False,
+                   fileupload_lock_duration=5,
                    fileupload_notification_max_delivery_count=10,
                    fileupload_notification_ttl=1,
                    fileupload_storage_connectionstring=None,
@@ -452,7 +453,8 @@ def iot_hub_create(cmd, client, hub_name, resource_group_name, location=None,
                                                          feedback=feedback_Properties)
     msg_endpoint_dic = {}
     msg_endpoint_dic['fileNotifications'] = MessagingEndpointProperties(max_delivery_count=fileupload_notification_max_delivery_count,
-                                                                        ttl_as_iso8601=timedelta(hours=fileupload_notification_ttl))
+                                                                        ttl_as_iso8601=timedelta(hours=fileupload_notification_ttl),
+                                                                        lock_duration_as_iso8601=timedelta(seconds=fileupload_lock_duration))
     storage_endpoint_dic = {}
     storage_endpoint_dic['$default'] = StorageEndpointProperties(
         sas_ttl_as_iso8601=timedelta(hours=fileupload_sas_ttl),
@@ -532,6 +534,7 @@ def update_iot_hub_custom(instance,
                           feedback_ttl=None,
                           feedback_max_delivery_count=None,
                           enable_fileupload_notifications=None,
+                          fileupload_lock_duration=None,
                           fileupload_notification_max_delivery_count=None,
                           fileupload_notification_ttl=None,
                           fileupload_storage_connectionstring=None,
@@ -562,6 +565,9 @@ def update_iot_hub_custom(instance,
         instance.properties.cloud_to_device.feedback.max_delivery_count = feedback_max_delivery_count
     if enable_fileupload_notifications is not None:
         instance.properties.enable_file_upload_notifications = enable_fileupload_notifications
+    if fileupload_lock_duration is not None:
+        lock_duration = timedelta(seconds=fileupload_lock_duration)
+        instance.properties.messaging_endpoints['fileNotifications'].lock_duration_as_iso8601 = lock_duration
     if fileupload_notification_max_delivery_count is not None:
         count = fileupload_notification_max_delivery_count
         instance.properties.messaging_endpoints['fileNotifications'].max_delivery_count = count
