@@ -468,10 +468,10 @@ class IoTHubTest(ScenarioTest):
         sleep(60)
 
         # Test 'az iot hub update' with Identity-based fileUpload
-        updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fsi [system] --fcs {2} --fc {3} --fn true --fnt 32 --fnd 80 --rd 4 '
-                               '--ct 34 --cdd 46 --ft 43 --fld 10 --f --fd 76'
+        updated_hub = self.cmd('iot hub update -n {0} --fsa {1} --fsi [system] --fcs {2} --fc {3} --fuld 15'
                                .format(identity_hub, identity_based_auth, storageConnectionString, containerName)).get_output_in_json()
         assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
+        assert updated_hub['properties']['messagingEndpoints']['fileNotifications']['lockDurationAsIso8601'] == '0:00:15'
         assert storage_cs_pattern in updated_hub['properties']['storageEndpoints']['$default']['connectionString']
         # Test fileupload authentication type settings
         # Setting key-based file upload (identity based commands should fail)
@@ -480,10 +480,9 @@ class IoTHubTest(ScenarioTest):
         updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsi test/user/'.format(identity_hub, rg), expect_failure=True)
         updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsi [system]'.format(identity_hub, rg), expect_failure=True)
 
-        # Setting identity-based file upload and changing to user identity
-        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsa {2} --fsi {3}'.format(identity_hub, rg, identity_based_auth, user_identity_1)).get_output_in_json()
+        # Back to identity-based file upload
+        updated_hub = self.cmd('iot hub update -n {0} -g {1} --fsa {2}'.format(identity_hub, rg, identity_based_auth, user_identity_1)).get_output_in_json()
         assert updated_hub['properties']['storageEndpoints']['$default']['authenticationType'] == identity_based_auth
-        assert updated_hub['properties']['storageEndpoints']['$default']['identity'] == user_identity_1
 
         # Create EH and link identity
         eh_info = self._create_eventhub_and_link_identity(rg, hub_object_id, [user_identity_1])
