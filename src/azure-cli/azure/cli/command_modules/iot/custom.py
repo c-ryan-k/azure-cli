@@ -52,6 +52,8 @@ from azure.mgmt.iothub.models import (IotHubSku,
 
 
 from azure.mgmt.iothubprovisioningservices.models import (CertificateBodyDescription,
+                                                          CertificateListDescription,
+                                                          CertificateResponse,
                                                           ProvisioningServiceDescription,
                                                           IotDpsPropertiesDescription,
                                                           IotHubDefinitionDescription,
@@ -59,7 +61,8 @@ from azure.mgmt.iothubprovisioningservices.models import (CertificateBodyDescrip
                                                           IotDpsSku,
                                                           OperationInputs as DpsOperationInputs,
                                                           SharedAccessSignatureAuthorizationRuleAccessRightsDescription,
-                                                          VerificationCodeRequest)
+                                                          VerificationCodeRequest,
+                                                          VerificationCodeResponse)
 
 
 from azure.mgmt.iotcentral.models import (AppSkuInfo,
@@ -367,12 +370,16 @@ def iot_dps_linked_hub_delete(cmd, client, dps_name, linked_hub, resource_group_
 # DPS certificate methods
 def iot_dps_certificate_list(client, dps_name, resource_group_name=None):
     resource_group_name = _ensure_dps_resource_group_name(client, resource_group_name, dps_name)
-    return client.dps_certificate.list(resource_group_name, dps_name)
+    response = client.dps_certificate.list(resource_group_name, dps_name)
+    response = _iot_certificate_decoder(response)
+    return response
 
 
 def iot_dps_certificate_get(client, dps_name, certificate_name, resource_group_name=None):
     resource_group_name = _ensure_dps_resource_group_name(client, resource_group_name, dps_name)
-    return client.dps_certificate.get(certificate_name, resource_group_name, dps_name)
+    response = client.dps_certificate.get(certificate_name, resource_group_name, dps_name)
+    response = _iot_certificate_decoder(response)
+    return response
 
 
 def iot_dps_certificate_create(client, dps_name, certificate_name, certificate_path, resource_group_name=None, is_verified=None):
@@ -386,7 +393,9 @@ def iot_dps_certificate_create(client, dps_name, certificate_name, certificate_p
     if not certificate:
         raise CLIError("Error uploading certificate '{0}'.".format(certificate_path))
     cert_description = CertificateBodyDescription(certificate=certificate, is_verified=is_verified)
-    return client.dps_certificate.create_or_update(resource_group_name, dps_name, certificate_name, cert_description)
+    response = client.dps_certificate.create_or_update(resource_group_name, dps_name, certificate_name, cert_description)
+    response = _iot_certificate_decoder(response)
+    return response
 
 
 def iot_dps_certificate_update(client, dps_name, certificate_name, certificate_path, etag, resource_group_name=None, is_verified=None):
@@ -398,7 +407,9 @@ def iot_dps_certificate_update(client, dps_name, certificate_name, certificate_p
             if not certificate:
                 raise CLIError("Error uploading certificate '{0}'.".format(certificate_path))
             cert_description = CertificateBodyDescription(certificate=certificate, is_verified=is_verified)
-            return client.dps_certificate.create_or_update(resource_group_name, dps_name, certificate_name, cert_description, etag)
+            response = client.dps_certificate.create_or_update(resource_group_name, dps_name, certificate_name, cert_description, etag)
+            response = _iot_certificate_decoder(response)
+            return response
     raise CLIError("Certificate '{0}' does not exist. Use 'iot dps certificate create' to create a new certificate."
                    .format(certificate_name))
 
@@ -411,10 +422,7 @@ def iot_dps_certificate_delete(client, dps_name, certificate_name, etag, resourc
 def iot_dps_certificate_gen_code(client, dps_name, certificate_name, etag, resource_group_name=None):
     resource_group_name = _ensure_dps_resource_group_name(client, resource_group_name, dps_name)
     response = client.dps_certificate.generate_verification_code(certificate_name, etag, resource_group_name, dps_name)
-    properties = getattr(response, 'properties', {})
-    cert = getattr(properties, 'certificate', None)
-    if isinstance(cert, bytearray):
-        response.properties.certificate = response.properties.certificate.decode('utf-8')
+    response = _iot_certificate_decoder(response)
     return response
 
 
@@ -424,7 +432,9 @@ def iot_dps_certificate_verify(client, dps_name, certificate_name, certificate_p
     if not certificate:
         raise CLIError("Error uploading certificate '{0}'.".format(certificate_path))
     request = VerificationCodeRequest(certificate=certificate)
-    return client.dps_certificate.verify_certificate(certificate_name, etag, resource_group_name, dps_name, request)
+    response = client.dps_certificate.verify_certificate(certificate_name, etag, resource_group_name, dps_name, request)
+    response = _iot_certificate_decoder(response)
+    return response
 
 
 # CUSTOM METHODS
@@ -1527,3 +1537,31 @@ def _build_identity(system=False, identities=None):
         identity.user_assigned_identities = {i: {} for i in user_identities}  # pylint: disable=not-an-iterable
 
     return identity
+
+
+def _iot_certificate_decoder(certificate_response):
+    if isinstance(certificate_response, CertificateListDescription) and certificate_response.value:
+        for cert in certificate_response.value:
+            cert = _iot_replace_certificate_bytes(cert)
+    if isinstance(certificate_response, (CertificateResponse, VerificationCodeResponse)):
+        certificate_response = _iot_replace_certificate_bytes(certificate_response)
+    return certificate_response
+
+def _iot_replace_certificate_bytes(cert_object):
+    properties = getattr(cert_object, 'properties', {})
+    body = getattr(properties, 'certificate', None)
+    if body:
+        cert_object.properties.certificate = _decode_certificate_bytes(body)
+    return cert_object
+
+
+def _decode_certificate_bytes(cert_bytes):
+    if isinstance(cert_bytes, str):
+        return cert_bytes
+    if isinstance(cert_bytes, (bytearray, bytes)):
+        try:
+            return cert_bytes.decode('utf-8')
+        except UnicodeDecodeError:
+            logger.warning("A certificate in the response contains invalid unicode, output formatting may be incorrect.")
+            return cert_bytes.decode('utf-8', 'ignore')
+    return None
