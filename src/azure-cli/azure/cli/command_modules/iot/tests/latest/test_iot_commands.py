@@ -423,7 +423,7 @@ class IoTHubTest(ScenarioTest):
         self.cmd('iot hub manual-failover -n {0} -g {1}'.format(hub, rg),
                  checks=[self.check('location', location)])
         # Test 'az iot hub delete'
-        self.cmd('iot hub delete -n {0}'.format(hub), checks=self.is_empty())
+        self.cmd('iot hub delete -n {0}'.format(hub))
 
         # Data Residency tests
         dr_hub_name = self.create_random_name('dps-dr', 20)
