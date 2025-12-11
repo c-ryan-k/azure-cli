@@ -75,6 +75,43 @@ def load_arguments(self, _):  # pylint: disable=too-many-statements
                    help='Enforce data residency for this IoT Hub Device Provisioning Service by disabling '
                    'cross geo-pair disaster recovery. This property is immutable once set on the resource. '
                    'Only available in select regions. Learn more at https://aka.ms/dpsdr')
+        c.argument('adr_ns_id',
+                   options_list=['--ns-resource-id', '--ns-id'],
+                   help='Device Registry namespace resource ID to link to this provisioning service.')
+        c.argument('adr_ns_identity_id',
+                   options_list=['--ns-identity-id'],
+                   help='User-managed identity resource ID to access Device Registry namespace.')
+        c.argument('mi_system_assigned',
+                   arg_type=get_three_state_flag(),
+                   options_list=['--mi-system-assigned'],
+                   help='Enable system-assigned managed identity for this provisioning service.')
+        c.argument('mi_user_assigned',
+                   nargs='*',
+                   options_list=['--mi-user-assigned'],
+                   help='Enable user-assigned managed identities for this provisioning service. '
+                   'Accepts space-separated list of identity resource IDs.')
+        c.argument('identity_role', options_list=['--role'],
+                   help="Role to assign to the provisioning service's system-assigned managed identity.")
+        c.argument('identity_scopes', options_list=['--scopes'], nargs='*',
+                   help="Space separated list of scopes to assign the role (--role) "
+                   "for the system-assigned managed identity.")
+
+    with self.argument_context('iot dps update') as c:
+        c.argument('adr_ns_id',
+                   options_list=['--ns-resource-id', '--ns-id'],
+                   help='Device Registry namespace resource ID to link to this provisioning service.')
+        c.argument('adr_ns_identity_id',
+                   options_list=['--ns-identity-id'],
+                   help='User-managed identity resource ID to access Device Registry namespace.')
+        c.argument('mi_system_assigned',
+                   arg_type=get_three_state_flag(),
+                   options_list=['--mi-system-assigned'],
+                   help='Enable system-assigned managed identity for this provisioning service.')
+        c.argument('mi_user_assigned',
+                   nargs='*',
+                   options_list=['--mi-user-assigned'],
+                   help='Enable user-assigned managed identities for this provisioning service. '
+                   'Accepts space-separated list of identity resource IDs.')
 
     # plan to slowly align this with extension naming patterns - n should be aligned with dps_name
     for subgroup in ['linked-hub', 'certificate']:
@@ -148,6 +185,34 @@ def load_arguments(self, _):  # pylint: disable=too-many-statements
         with self.argument_context('iot dps certificate {}'.format(subgroup)) as c:
             c.argument('is_verified', options_list=['--verified', '-v'], arg_type=get_three_state_flag(),
                        help='A boolean indicating whether or not the certificate is verified.')
+
+    # DPS identity management commands
+    with self.argument_context('iot dps identity assign') as c:
+        c.argument('system_assigned',
+                   arg_type=get_three_state_flag(),
+                   options_list=['--system', '--system-assigned'],
+                   help='Assign a system-assigned managed identity to this provisioning service.')
+        c.argument('user_assigned',
+                   nargs='*',
+                   options_list=['--user', '--user-assigned'],
+                   help='Assign user-assigned managed identities to this provisioning service. '
+                   'Accepts space-separated list of identity resource IDs.')
+        c.argument('identity_role', options_list=['--role'],
+                   help="Role to assign to the provisioning service's system-assigned managed identity.")
+        c.argument('identity_scopes', options_list=['--scopes'], nargs='*',
+                   help="Space separated list of scopes to assign the role (--role) "
+                   "for the system-assigned managed identity.")
+
+    with self.argument_context('iot dps identity remove') as c:
+        c.argument('system_assigned',
+                   arg_type=get_three_state_flag(),
+                   options_list=['--system', '--system-assigned'],
+                   help='Remove a system-assigned managed identity from this provisioning service.')
+        c.argument('user_assigned',
+                   nargs='*',
+                   options_list=['--user', '--user-assigned'],
+                   help='Remove user-assigned managed identities from this provisioning service. '
+                   'Accepts space-separated list of identity resource IDs.')
 
     # Arguments for IoT Hub
     with self.argument_context('iot hub') as c:
@@ -363,6 +428,29 @@ def load_arguments(self, _):  # pylint: disable=too-many-statements
                    help='Enforce data residency for this IoT Hub by disabling cross-region disaster recovery. '
                    'This property is immutable once set on the resource. Only available in select regions. '
                    'Learn more at https://aka.ms/iothubdisabledr')
+        c.argument('adr_ns_id',
+                   options_list=['--ns-resource-id'],
+                   help='Device Registry namespace resource ID to link to this IoT hub.')
+        c.argument('adr_ns_identity_id',
+                   options_list=['--ns-identity-id'],
+                   help='User-managed identity resource ID to access Device Registry namespace.')
+        c.argument('skip_ns_role_assignments',
+                   options_list=['--skip-ns-ra'],
+                   arg_group='ADR Namespace Role Assignment',
+                   arg_type=get_three_state_flag(),
+                   help='Used to skip ADR Namespace role assignment after IoT hub creation. '
+                   'Only applicable to Gen2 IoT Hubs.')
+        c.argument('custom_ns_role_id',
+                   options_list=['--custom-ns-role-id'],
+                   arg_group='ADR Namespace Role Assignment',
+                   help='Fully qualified role definition Id to apply to ADR Namespace, in the following format: '
+                   '/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{roleId}. '
+                   'Only applicable to Gen2 IoT Hubs.')
+
+    with self.argument_context('iot hub update') as c:
+        c.argument('adr_ns_identity_id',
+                   options_list=['--ns-identity-id'],
+                   help='User-managed identity resource ID to access Device Registry namespace.')
 
     with self.argument_context('iot hub show-connection-string') as c:
         c.argument('show_all', options_list=['--all'], help='Allow to show all shared access policies.')

@@ -150,6 +150,41 @@ examples:
         az iot dps certificate verify --dps-name MyDps --resource-group MyResourceGroup --name MyCertificate --path /certificates/Verification.pem --etag AAAAAAAAAAA=
 """
 
+helps['iot dps identity'] = """
+type: group
+short-summary: Manage identities of an Azure IoT Hub Device Provisioning Service.
+"""
+
+helps['iot dps identity assign'] = """
+type: command
+short-summary: Assign managed identities to an Azure IoT Hub Device Provisioning Service.
+examples:
+  - name: Assign a system-assigned identity to an Azure IoT Hub Device Provisioning Service.
+    text: az iot dps identity assign --name MyDps --resource-group MyResourceGroup --system
+  - name: Assign both a system-assigned and a user-managed identity to an Azure IoT Hub Device Provisioning Service.
+    text: az iot dps identity assign --name MyDps --resource-group MyResourceGroup --system --user IdentityResourceId
+  - name: Assign a system-assigned identity with role assignment to a storage account.
+    text: az iot dps identity assign --name MyDps --resource-group MyResourceGroup --system --role "Storage Blob Data Contributor" --scopes {resourceId}
+"""
+
+helps['iot dps identity remove'] = """
+type: command
+short-summary: Remove managed identities from an Azure IoT Hub Device Provisioning Service.
+examples:
+  - name: Remove a system-assigned identity from an Azure IoT Hub Device Provisioning Service.
+    text: az iot dps identity remove --name MyDps --resource-group MyResourceGroup --system
+  - name: Remove a user-managed identity from an Azure IoT Hub Device Provisioning Service.
+    text: az iot dps identity remove --name MyDps --resource-group MyResourceGroup --user IdentityResourceId
+"""
+
+helps['iot dps identity show'] = """
+type: command
+short-summary: Show the identity properties of an Azure IoT Hub Device Provisioning Service.
+examples:
+  - name: View identity of an Azure IoT Hub Device Provisioning Service.
+    text: az iot dps identity show --name MyDps --resource-group MyResourceGroup
+"""
+
 helps['iot dps create'] = """
 type: command
 short-summary: Create an Azure IoT Hub Device Provisioning Service instance.
@@ -164,6 +199,15 @@ examples:
   - name: Create an Azure IoT Hub Device Provisioning Service with data residency enforced. This will disable cross-region disaster recovery.
     text: >
         az iot dps create --name MyDps --resource-group MyResourceGroup --edr
+  - name: Create an Azure IoT Hub Device Provisioning Service with system identity and Device Registry namespace properties
+    text: >
+        az iot dps create --name MyDps --resource-group MyResourceGroup --mi-system-assigned --ns-resource-id NamespaceResourceId
+  - name: Create an Azure IoT Hub Device Provisioning Service with a system identity, and assign a role and scope to a storage account for the created identity.
+    text: >
+        az iot dps create --name MyDps --resource-group MyResourceGroup --mi-system-assigned --role "Storage Blob Data Contributor" --scopes {resourceId}
+  - name: Create an Azure IoT Hub Device Provisioning Service with user identity and Device Registry namespace properties
+    text: >
+        az iot dps create --name MyDps --resource-group MyResourceGroup --mi-user-assigned IdentityResourceId --ns-resource-id NamespaceResourceId --ns-identity-id IdentityResourceId
 """
 
 helps['iot dps delete'] = """
@@ -416,6 +460,15 @@ examples:
   - name: Create an IoT Hub with data residency enforced. This will disable cross-region disaster recovery.
     text: >
         az iot hub create --resource-group MyResourceGroup --name MyIoTHub --edr
+  - name: Create a Generation2 IoT Hub with Device Registry namespace properties.
+    text: >
+        az iot hub create --resource-group MyResourceGroup --name MyHub --sku GEN2 --ns-resource-id NamespaceResourceId --ns-identity-id UserIdentityResourceId
+  - name: Create a Generation2 IoT Hub with Device Registry namespace properties and custom role assignment.
+    text: >
+        az iot hub create --resource-group MyResourceGroup --name MyHub --sku GEN2 --ns-resource-id NamespaceResourceId --ns-identity-id UserIdentityResourceId --custom-ns-role-id RoleResourceId
+  - name: Create a Generation2 IoT Hub with Device Registry namespace properties and skip role assignment.
+    text: >
+        az iot hub create --resource-group MyResourceGroup --name MyHub --sku GEN2 --ns-resource-id NamespaceResourceId --ns-identity-id UserIdentityResourceId --skip-ns-ra
 """
 
 helps['iot hub delete'] = """
